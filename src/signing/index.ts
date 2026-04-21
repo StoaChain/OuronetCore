@@ -1,5 +1,7 @@
-// @stoachain/ouronet-core/signing — KeyResolver + SigningStrategy interfaces,
-// CodexSigningStrategy, pure primitives (publicKeyFromPrivateKey, etc.).
-// Populated in Phase 3 when src/lib/universalSign.ts splits and the
-// KeyResolver abstraction lands.
-export {};
+// @stoachain/ouronet-core/signing
+//
+// Phase 1 exports: public-key derivation primitives.
+// Phase 3 will land the full signing surface here (universalSignTransaction,
+// KeyResolver, SigningStrategy, CodexSigningStrategy).
+
+export * from "./primitives";

@@ -1,6 +1,6 @@
 {
   "name": "@stoachain/ouronet-core",
-  "version": "0.0.1-alpha.0",
+  "version": "0.2.0",
   "description": "Shared TypeScript core for the OuroNet ecosystem — StoaChain / Chainweb / Pact interactions, Codex signing, guard analysis, encryption. Consumed by OuronetUI and the AncientHolder HUB.",
   "type": "module",
   "main": "./dist/index.js",
@@ -29,20 +29,24 @@
     "clean": "rimraf dist"
   },
   "peerDependencies": {
-    "@kadena/client":    "^1.17.0",
-    "@kadena/hd-wallet": "^0.6.0",
-    "@kadena/types":     "^0.7.0",
-    "@scure/bip39":      "^1.2.0"
+    "@kadena/client":              "^1.17.0",
+    "@kadena/cryptography-utils":  "^0.4.0",
+    "@kadena/hd-wallet":           "^0.6.0",
+    "@kadena/types":               "^0.7.0",
+    "@noble/curves":               "^1.4.0",
+    "@scure/bip39":                "^1.2.0"
   },
   "devDependencies": {
-    "@kadena/client":    "^1.17.1",
-    "@kadena/hd-wallet": "^0.6.1",
-    "@kadena/types":     "^0.7.0",
-    "@scure/bip39":      "^1.6.0",
-    "@types/node":       "^22.10.0",
-    "rimraf":            "^6.0.1",
-    "typescript":        "^5.7.2",
-    "vitest":            "^4.1.0"
+    "@kadena/client":              "^1.17.1",
+    "@kadena/cryptography-utils":  "^0.4.4",
+    "@kadena/hd-wallet":           "^0.6.1",
+    "@kadena/types":               "^0.7.0",
+    "@noble/curves":               "^1.9.0",
+    "@scure/bip39":                "^1.6.0",
+    "@types/node":                 "^22.10.0",
+    "rimraf":                      "^6.0.1",
+    "typescript":                  "^5.7.2",
+    "vitest":                      "^4.1.0"
   },
   "repository": {
     "type": "git",
