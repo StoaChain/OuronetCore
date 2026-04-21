@@ -1,0 +1,56 @@
+{
+  "name": "@stoachain/ouronet-core",
+  "version": "0.0.1-alpha.0",
+  "description": "Shared TypeScript core for the OuroNet ecosystem — StoaChain / Chainweb / Pact interactions, Codex signing, guard analysis, encryption. Consumed by OuronetUI and the AncientHolder HUB.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".":              { "types": "./dist/index.d.ts",              "import": "./dist/index.js" },
+    "./constants":    { "types": "./dist/constants/index.d.ts",    "import": "./dist/constants/index.js" },
+    "./network":      { "types": "./dist/network/index.d.ts",      "import": "./dist/network/index.js" },
+    "./gas":          { "types": "./dist/gas/index.d.ts",          "import": "./dist/gas/index.js" },
+    "./guard":        { "types": "./dist/guard/index.d.ts",        "import": "./dist/guard/index.js" },
+    "./crypto":       { "types": "./dist/crypto/index.d.ts",       "import": "./dist/crypto/index.js" },
+    "./signing":      { "types": "./dist/signing/index.d.ts",      "import": "./dist/signing/index.js" },
+    "./wallet":       { "types": "./dist/wallet/index.d.ts",       "import": "./dist/wallet/index.js" },
+    "./codex":        { "types": "./dist/codex/index.d.ts",        "import": "./dist/codex/index.js" },
+    "./reads":        { "types": "./dist/reads/index.d.ts",        "import": "./dist/reads/index.js" },
+    "./interactions": { "types": "./dist/interactions/index.d.ts", "import": "./dist/interactions/index.js" }
+  },
+  "files": ["dist"],
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepare": "npm run build",
+    "clean": "rimraf dist"
+  },
+  "peerDependencies": {
+    "@kadena/client":    "^1.17.0",
+    "@kadena/hd-wallet": "^0.6.0",
+    "@kadena/types":     "^0.7.0",
+    "@scure/bip39":      "^1.2.0"
+  },
+  "devDependencies": {
+    "@kadena/client":    "^1.17.1",
+    "@kadena/hd-wallet": "^0.6.1",
+    "@kadena/types":     "^0.7.0",
+    "@scure/bip39":      "^1.6.0",
+    "@types/node":       "^22.10.0",
+    "rimraf":            "^6.0.1",
+    "typescript":        "^5.7.2",
+    "vitest":            "^4.1.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/StoaChain/OuronetCore.git"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "license": "UNLICENSED",
+  "private": true
+}
