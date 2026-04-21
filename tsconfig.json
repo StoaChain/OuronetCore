@@ -18,12 +18,7 @@
     "noEmit": true,
     "declaration": true,
     "declarationMap": false,
-    "sourceMap": false,
-
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["./src/*"]
-    }
+    "sourceMap": false
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist"]
