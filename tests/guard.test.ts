@@ -488,3 +488,96 @@ describe("selectCapsSigningKey", () => {
     });
   });
 });
+
+// ══ Multi-guard scenarios (integration with analyzeGuard + selectCapsSigningKey)
+// These exercise the flow CodexSigningStrategy.execute runs internally — what
+// happens when BOTH a patron guard AND a resident guard need to sign on the
+// same tx. Regressions here brick every 2-guard CFM modal (Coil, Transfer,
+// Awake, Slumber, etc. — 18 of our 23 CFM modals).
+
+describe("multi-guard scenario (patron + resident, both codex)", () => {
+  const CODEX_KEYS = new Set([
+    "00".repeat(32),                       // "caps candidate" — in codex, in no guard
+    "a".repeat(64),                        // patron
+    "b".repeat(64),                        // resident
+  ]);
+  const PATRON_GUARD: any   = { pred: "keys-all", keys: ["a".repeat(64)] };
+  const RESIDENT_GUARD: any = { pred: "keys-all", keys: ["b".repeat(64)] };
+
+  it("patron and resident each contribute one key; caps picks the remaining codex key", () => {
+    const patronAn   = analyzeGuard(PATRON_GUARD,   CODEX_KEYS);
+    const residentAn = analyzeGuard(RESIDENT_GUARD, CODEX_KEYS);
+
+    const pureSigning = new Set<string>([
+      ...patronAn.codexKeys,   ...patronAn.resolvedForeignKeys,
+      ...residentAn.codexKeys, ...residentAn.resolvedForeignKeys,
+    ]);
+
+    const caps = selectCapsSigningKey(null, CODEX_KEYS, pureSigning);
+    expect(caps.key).toBe("00".repeat(32));
+    expect(caps.impossible).toBe(false);
+  });
+
+  it("patron == resident (same key): pureSigning has 1 member, caps picks one of the others", () => {
+    const sameKey = "a".repeat(64);
+    const patronAn   = analyzeGuard({ pred: "keys-all", keys: [sameKey] }, CODEX_KEYS);
+    const residentAn = analyzeGuard({ pred: "keys-all", keys: [sameKey] }, CODEX_KEYS);
+    const pureSigning = new Set<string>([
+      ...patronAn.codexKeys, ...residentAn.codexKeys,
+    ]);
+    expect(pureSigning.size).toBe(1); // key-level dedup via Set
+
+    const caps = selectCapsSigningKey(null, CODEX_KEYS, pureSigning);
+    expect(caps.key).not.toBe(sameKey);
+    expect(caps.key).toBeTruthy();
+  });
+
+  it("impossible: 2-guard tx where all codex keys are needed for signing", () => {
+    const TIGHT_CODEX = new Set(["a".repeat(64), "b".repeat(64)]);
+    const patronAn   = analyzeGuard({ pred: "keys-all", keys: ["a".repeat(64)] }, TIGHT_CODEX);
+    const residentAn = analyzeGuard({ pred: "keys-all", keys: ["b".repeat(64)] }, TIGHT_CODEX);
+    const pureSigning = new Set<string>([
+      ...patronAn.codexKeys, ...residentAn.codexKeys,
+    ]);
+
+    const caps = selectCapsSigningKey(null, TIGHT_CODEX, pureSigning);
+    // No free codex key → selectCapsSigningKey returns null.
+    // Not "impossible" in the sense of a payment-key conflict; just no caps available.
+    expect(caps.key).toBe(null);
+    expect(caps.impossible).toBe(false);
+  });
+});
+
+// ══ Keyset-ref guards — on-chain keyset names
+// Some guards reference a named keyset (e.g. "ouronet-ns.dh_sc_dpdc-keyset")
+// rather than inlining the pubkey list. analyzeGuard treats the keys array
+// as the source of truth; the keysetRef is metadata for UI display. Test
+// that analyzeGuard doesn't trip on the extra field.
+
+describe("keyset-ref guards (on-chain named keysets)", () => {
+  const PUB = "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a";
+
+  it("keysetRef field is preserved + analyzeGuard still inspects .keys", () => {
+    const guardWithRef: any = {
+      pred: "keys-all",
+      keys: [PUB],
+      keysetRef: "ouronet-ns.dh_sc_dpdc-keyset",
+    };
+    const result = analyzeGuard(guardWithRef, new Set([PUB]));
+    expect(result.satisfied).toBe(true);
+    expect(result.signable).toBe(1);
+  });
+
+  it("keysetRef with foreign-only keys still correctly partitions", () => {
+    const guardWithRef: any = {
+      pred: "keys-all",
+      keys: [PUB],
+      keysetRef: "ouronet-ns.some-keyset",
+    };
+    // PUB NOT in codex → classified as foreign
+    const result = analyzeGuard(guardWithRef, new Set());
+    expect(result.codexKeys).toEqual([]);
+    expect(result.foreignKeys).toEqual([PUB]);
+    expect(result.satisfied).toBe(false);
+  });
+});

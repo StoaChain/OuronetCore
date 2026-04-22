@@ -2,6 +2,26 @@
 
 All notable changes to `@stoachain/ouronet-core`.
 
+## 0.11.0 — 2026-04-22
+
+**Tier 1 testing pass.** Extracts the per-modal Pact-code builders into a pure module and adds 75 tests across 4 new/extended test files. All 268 tests pass (was 193). See `OuronetUI/docs/TESTING_STRATEGY.md` for the testing strategy rationale.
+
+### Added
+
+- **`@stoachain/ouronet-core/pact/cfmBuilders`** — 14 pure Pact-code string builders, one per CFM function the ecosystem ships: `buildTransferPactCode`, `buildClearDispoPactCode`, `buildSublimatePactCode`, `buildCompressPactCode`, `buildCoilPactCode`, `buildCurlPactCode`, `buildBrumatePactCode`, `buildConstrictPactCode`, `buildColdRecoveryPactCode`, `buildDirectRecoveryPactCode`, `buildCullPactCode`, `buildAwakePactCode`, `buildSlumberPactCode`, `buildFirestarterPactCode`. Replaces the inline template literals that used to live in OuronetUI's 23 CFM modals. Each builder takes a typed params object and returns the canonical Pact-code string.
+- **`tests/cfm-builders.test.ts`** — 35 tests. One per builder + argument-order preservation + decimal formatting + edge cases (empty nonce list, single-item list, dayz as integer not decimal, etc). Cross-cutting "every builder produces `(ouronet-ns...)` shape" test for forward-compat.
+- **`tests/codex-codec.test.ts`** — 31 tests covering `buildCodexExport` / `serializeCodex` / `deserializeCodex` / `migrateSeedType`. Round-trip + version-mismatch rejection + unicode preservation + idempotent seed-type migration.
+- **`tests/strategy.test.ts`** — 9 tests for `CodexSigningStrategy.execute()` + `sign()`. Uses mock `PactClient` + mock `KeyResolver` with real Ed25519 nacl signing (RFC 8032 test vectors for keypairs). Verifies call-order (simulate → submit), gas calibration flows through, sim-failure halts pipeline, guard keypair dedup, `extraSigners` folded into sign step.
+
+### Changed
+
+- `tests/guard.test.ts` — extended with multi-guard scenarios (patron+resident cooperating) and keyset-ref guard edge cases. The pattern every CFM modal runs internally but that wasn't directly covered before.
+
+### Migration notes
+
+- `@stoachain/ouronet-core/pact` now also exports the 14 `buildXPactCode` functions. Existing imports of `formatDecimalForPact`, `safeCreationTime`, `filterFreePositionData`, `mayComeWithDeimal`, `parseEU`, `formatEU` all still work.
+- No breaking change — pure additions.
+
 ## 0.10.0 — 2026-04-22
 
 **Phase 4 of the OuronetUI → OuronetCore extraction.** Moves encryption primitives + introduces portable Codex types + the backup-JSON codec. Pure additions — no existing export changes.
