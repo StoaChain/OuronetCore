@@ -2,6 +2,25 @@
 
 All notable changes to `@stoachain/ouronet-core`.
 
+## 0.5.0 — 2026-04-22
+
+**Phase 2c of the OuronetUI → OuronetCore extraction.** HD keypair derivation + runtime wallet class move to core; `CodexStorageAdapter` interface defined so browser + server consumers each implement their own storage backend.
+
+### Added
+
+- **`@stoachain/ouronet-core/wallet/KadenaWalletBuilder`** — HD keypair derivation + mnemonic generation/validation. Two paths: `koala` (24-word BIP39 + SLIP-10 Ed25519) and `chainweaver`/`eckowallet` (12-word Kadena mnemonic + BIP32-Ed25519). Plus `encrypt`/`decrypt` wrapping `@kadena/hd-wallet`'s AES-GCM primitive (distinct from core/crypto's Codex-level encryption — this is the inner per-seed wrapper).
+- **`@stoachain/ouronet-core/wallet/KadenaWallet`** — runtime account class with `address`, `publicKey`, `derivationPath`, and lazy `getBalance()`. Pure data holder + one async chain read.
+- **`@stoachain/ouronet-core/wallet/SeedType`** — `"koala" | "chainweaver" | "eckowallet"`. Picks the derivation algorithm; NOT a delegation marker (no browser-wallet integration is wired).
+- **`@stoachain/ouronet-core/wallet/CodexStorageAdapter`** — interface only. Two methods: `load()`, `save(codex)`, `clear()`. Concrete implementations live in each consumer: OuronetUI ships `LocalStorageCodexAdapter` (backed by localStorage + redux-persist); the HUB will ship `EncryptedFileCodexAdapter` (AES-GCM file on disk). Core intentionally provides no default — each runtime brings its own.
+
+### Why no default adapter in core
+
+Different runtimes have fundamentally different idioms: Redux action-dispatch (browser) vs direct-mutation-then-write (server) vs async-backend (future). Trying to force them through one shared state machine gains nothing; the interface is the minimal contract. Phase 4's `PlaintextCodex` type will concrete-type the payload both adapters persist.
+
+### Tests
+
+Still 162 — the wallet code is integration-level (needs real @kadena/hd-wallet WASM + a mnemonic); unit-testing would mostly exercise the library. Phase 3b's on-chain checklist covers HD-derivation end-to-end.
+
 ## 0.4.1 — 2026-04-22
 
 **Phase 2b refinement.** Adds a pluggable Pact reader so consumers can wire their own cache-aware implementation, restoring the read behavior OuronetUI had before Phase 2b. Caught via a Smart Swap UI flicker bug: after v0.4.0, every dex read inside `interactions/*` went through `rawCalibratedDirtyRead` — no cache, no dedup — so a widget that fires reads per-keystroke (Smart Swap's token selector) flickered and couldn't finalize a selection.
