@@ -2,6 +2,14 @@
 
 All notable changes to `@stoachain/ouronet-core`.
 
+## 0.8.0 — 2026-04-22
+
+**Phase 3b.2 Wave 1 support.** Pure addition — exposes `safeCreationTime()` from `@stoachain/ouronet-core/pact` so CFM modals in OuronetUI can mint `creationTime` values the same way every core `execute*` helper already does (Pact `setMeta`'s creationTime − 30s to sidestep node clock-skew rejections). No behavior changes to existing exports.
+
+### Added
+
+- `safeCreationTime(): number` — shared `Math.floor(Date.now()/1000) - 30` helper. Used by the CFM modals' `strategy.execute({ build })` closures so their `setMeta({creationTime})` matches what the A-F pipeline has always done. Keeps sim + submit consistent across every modal.
+
 ## 0.7.0 — 2026-04-22
 
 **Phase 3b.1 of the OuronetUI → OuronetCore extraction.** Ships `CodexSigningStrategy` — the first real `SigningStrategy` implementation. The 23 CFM modals in OuronetUI can now delete their ~43-line `handleExecute` A-F pipeline in favor of a ~30-line `strategy.execute({...})` call. Done one modal at a time with smoke-testing between each; `CompressCFMModal` is the first consumer (see OuronetUI v0.29.6).

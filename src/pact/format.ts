@@ -127,6 +127,19 @@ export function formatEU(raw: string | number | null | undefined): string {
 }
 
 /**
+ * Safe `creationTime` for Pact `setMeta({creationTime})`.
+ *
+ * Subtracts 30 seconds from current wall-clock time to sidestep chain-side
+ * "creation time is too far in the future" rejections when the client's
+ * clock drifts slightly ahead of the node's. Every on-chain tx this cluster
+ * submits has used this rule since the first days of the UI — keep it
+ * consistent so simulations and submits don't diverge.
+ */
+export function safeCreationTime(): number {
+  return Math.floor(Date.now() / 1000) - 30;
+}
+
+/**
  * Normalize raw free-position-data rows from the chain.
  *
  * When a user's free-positions list clears, `URC_0017_TruefungibleButton`
