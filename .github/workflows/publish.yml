@@ -1,0 +1,70 @@
+name: Publish to GitHub Packages
+
+# Triggered by pushing a version tag (e.g. v0.10.0, v1.0.0).
+# Publishes this package to GitHub Packages under the @stoachain scope
+# at https://github.com/orgs/StoaChain/packages so OuronetUI, HUB, and
+# any other consumer can `npm install @stoachain/ouronet-core@^X.Y.Z`
+# from a registry instead of the `file:` link we used during Phases
+# 1–4. No cross-org secret needed: `GITHUB_TOKEN` with `packages: write`
+# permission is enough because we're publishing to this repo's own
+# package registry.
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  publish:
+    name: Build & Publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Node + scoped registry. `setup-node`'s registry-url wires the
+      # generated .npmrc to publish to GitHub Packages; the `scope`
+      # ensures the `@stoachain/*` prefix maps correctly. npm uses
+      # NODE_AUTH_TOKEN under the hood when registry-url is set.
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          registry-url: https://npm.pkg.github.com
+          scope: "@stoachain"
+
+      - name: Install dependencies
+        run: npm install --prefer-offline --no-audit --no-fund
+
+      # Belt-and-suspenders: tests + build gate the publish so a broken
+      # core never makes it to the registry. The `prepare` script also
+      # builds dist/ pre-publish — this is redundant and intentional.
+      - name: Typecheck + Test + Build
+        run: |
+          npm run typecheck
+          npm test
+          npm run build
+
+      # Verify the tag matches the package.json version — reject
+      # mismatched tags so we don't publish v0.10.0 from a tag that
+      # says v0.10.1 (or vice versa).
+      - name: Verify tag matches package.json version
+        run: |
+          TAG_VERSION="${GITHUB_REF#refs/tags/v}"
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+            echo "::error::Tag $TAG_VERSION does not match package.json version $PKG_VERSION"
+            exit 1
+          fi
+          echo "Tag $TAG_VERSION matches package.json — proceeding"
+
+      - name: Publish to GitHub Packages
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
