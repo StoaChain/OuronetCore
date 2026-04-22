@@ -6,7 +6,7 @@ import {
   PACT_URL,
 } from "../constants";
 import { Pact, createClient } from "@kadena/client";
-import { rawCalibratedDirtyRead } from "../reads";
+import { pactRead } from "../reads";
 import { universalSignTransaction, fromKeypair } from "../signing";
 
 /**
@@ -40,7 +40,7 @@ export interface IKadenaKeypair {
  */
 export async function getKpayData(account: string): Promise<any> {
   try {
-    const response = await rawCalibratedDirtyRead(`(${KADENA_NAMESPACE}.DEMIPAD-KPAY.UR_Kpay "${account}")`, { tier: "T5" });
+    const response = await pactRead(`(${KADENA_NAMESPACE}.DEMIPAD-KPAY.UR_Kpay "${account}")`, { tier: "T5" });
 
     if (!response || !response.result || response.result.status === "failure") {
       return null;
@@ -66,7 +66,7 @@ export async function getKpayAmountCosts(
   try {
     const integerAmount = Math.floor(amount);
     
-    const response = await rawCalibratedDirtyRead(`(${KADENA_NAMESPACE}.DEMIPAD-KPAY.URC_KpayAmountCosts ${integerAmount} ${futureSeconds})`, { tier: "T6" });
+    const response = await pactRead(`(${KADENA_NAMESPACE}.DEMIPAD-KPAY.URC_KpayAmountCosts ${integerAmount} ${futureSeconds})`, { tier: "T6" });
 
     if (!response || !response.result || response.result.status === "failure") {
       return null;
@@ -94,7 +94,7 @@ export async function getKpayAcquireCapabilities(
   try {
     const integerAmount = Math.floor(amount);
     
-    const response = await rawCalibratedDirtyRead(`(${KADENA_NAMESPACE}.DEMIPAD-KPAY.URC_Acquire "${buyer}" ${integerAmount} ${isNative})`, { tier: "T5" });
+    const response = await pactRead(`(${KADENA_NAMESPACE}.DEMIPAD-KPAY.URC_Acquire "${buyer}" ${integerAmount} ${isNative})`, { tier: "T5" });
 
     if (!response || !response.result || response.result.status === "failure") {
       return null;

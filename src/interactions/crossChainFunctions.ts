@@ -1,7 +1,7 @@
 import { Pact, createClient, ITransactionDescriptor } from "@kadena/client";
 import { KADENA_NETWORK, getPactUrl, getSpvUrl, GAS_STATION, KADENA_NAMESPACE } from "../constants";
 import { GAS_PRICE_MIN_ANU, anuToStoa } from "../gas";
-import { rawCalibratedDirtyRead } from "../reads";
+import { pactRead } from "../reads";
 import { ChainId } from "@kadena/types";
 
 /**
@@ -24,7 +24,7 @@ export async function getBalanceOnChain(
 ): Promise<{ balance: string; exists: boolean; error?: string }> {
   try {
     const pactCode = `(coin.get-balance "${account}")`;
-    const response = await rawCalibratedDirtyRead(pactCode, {
+    const response = await pactRead(pactCode, {
       pactUrl: getPactUrl(chainId),
       chainId,
       tier,

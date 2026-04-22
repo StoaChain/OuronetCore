@@ -7,7 +7,7 @@ import {
 } from "../constants";
 import { formatDecimalForPact } from "../pact";
 import { Pact, createClient } from "@kadena/client";
-import { rawCalibratedDirtyRead } from "../reads";
+import { pactRead } from "../reads";
 import { universalSignTransaction, fromKeypair } from "../signing";
 import type { IOuroAccountKeypair, IKadenaKeypair } from "./ouroFunctions";
 
@@ -158,7 +158,7 @@ export async function getHibernateFee(
   lockDays: number
 ): Promise<number> {
   try {
-    const response = await rawCalibratedDirtyRead(`(${KADENA_NAMESPACE}.DPL-UR.URC_0012_HibernateFee "${korIndexId}" ${lockDays})`, { tier: "T2" });
+    const response = await pactRead(`(${KADENA_NAMESPACE}.DPL-UR.URC_0012_HibernateFee "${korIndexId}" ${lockDays})`, { tier: "T2" });
 
     if (!response || !response.result) {
       throw new Error("Failed to retrieve hibernate fee");

@@ -2,6 +2,22 @@
 
 All notable changes to `@stoachain/ouronet-core`.
 
+## 0.4.1 — 2026-04-22
+
+**Phase 2b refinement.** Adds a pluggable Pact reader so consumers can wire their own cache-aware implementation, restoring the read behavior OuronetUI had before Phase 2b. Caught via a Smart Swap UI flicker bug: after v0.4.0, every dex read inside `interactions/*` went through `rawCalibratedDirtyRead` — no cache, no dedup — so a widget that fires reads per-keystroke (Smart Swap's token selector) flickered and couldn't finalize a selection.
+
+### Added
+
+- **`@stoachain/ouronet-core/reads`** — new `setPactReader(reader)` + `getPactReader()` + `pactRead(pactCode, options)`. Interactions now call `pactRead` instead of `rawCalibratedDirtyRead` directly; the default is `rawCalibratedDirtyRead` (so HUB / server consumers see no change), but OuronetUI calls `setPactReader(calibratedDirtyRead)` at boot and its cache-aware wrapper takes over.
+
+### Changed
+
+- Every `rawCalibratedDirtyRead(...)` call inside `src/interactions/*` rewritten to `pactRead(...)`. Behavior identical when no reader is configured (default is still raw); behavior cache-aware when a consumer configures one.
+
+### Why
+
+Phase 2b's sed swapped `calibratedDirtyRead` → `rawCalibratedDirtyRead` blanket across all moved interactions. That was too aggressive — the intent was "simulations shouldn't be cached" (one-shot reads before signing), but the same swap also touched routine display reads inside `interactions/*` (`getPoolTotalFee`, `getSwpairs`, `getSWPairGeneralInfo`, etc.). These need cache dedup because UI widgets call them repeatedly as users interact. Pluggable reader keeps both worlds clean: raw by default, cached on request.
+
 ## 0.4.0 — 2026-04-22
 
 **Phase 2b of the OuronetUI → OuronetCore extraction.** The largest single phase so far — all Pact builders + error helpers + signing core move into the package. Both consumers (OuronetUI today, HUB in future) now get every on-chain action OuronetUI performs by importing from `@stoachain/ouronet-core/interactions/*`.

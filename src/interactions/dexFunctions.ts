@@ -7,7 +7,7 @@ import {
 import { Pact, createClient } from "@kadena/client";
 import { universalSignTransaction, fromKeypair } from "../signing";
 import { calculateAutoGasLimit } from "../gas";
-import { rawCalibratedDirtyRead } from "../reads";
+import { pactRead } from "../reads";
 
 /**
  * Safe creation time for Pact transactions.
@@ -230,7 +230,7 @@ export interface SwapExecutionParams {
  */
 export async function getPoolIds(): Promise<string[] | null> {
   try {
-    const response = await rawCalibratedDirtyRead(`(${KADENA_NAMESPACE}.SWP.URC_Swpairs)`, { tier: "T7" });
+    const response = await pactRead(`(${KADENA_NAMESPACE}.SWP.URC_Swpairs)`, { tier: "T7" });
 
     if (!response || !response.result) {
       throw new Error("Failed to retrieve pool IDs from the transaction.");
@@ -253,7 +253,7 @@ export async function getPoolIds(): Promise<string[] | null> {
  */
 export async function getPrimordialPool(): Promise<string | null> {
   try {
-    const response = await rawCalibratedDirtyRead(`(${KADENA_NAMESPACE}.SWP.UR_PrimordialPool)`, { tier: "T7" });
+    const response = await pactRead(`(${KADENA_NAMESPACE}.SWP.UR_PrimordialPool)`, { tier: "T7" });
     if (response?.result?.status === "success") {
       return String(response.result.data);
     }
@@ -268,7 +268,7 @@ export async function getPrimordialPool(): Promise<string | null> {
  */
 export async function getSWPairGeneralInfo(): Promise<any> {
   try {
-    const response = await rawCalibratedDirtyRead(`(${KADENA_NAMESPACE}.DPL-UR.URC_0003_SWPairGeneralInfo)`, { tier: "T5" });
+    const response = await pactRead(`(${KADENA_NAMESPACE}.DPL-UR.URC_0003_SWPairGeneralInfo)`, { tier: "T5" });
 
     if (!response || !response.result) {
       throw new Error("Failed to retrieve general swap pair info from the transaction.");
@@ -292,7 +292,7 @@ export async function getSWPairDashboardInfo(swpair: string): Promise<SwapPoolDa
   try {
     const pactCode = `(${KADENA_NAMESPACE}.DPL-UR.URC_0004_SWPairDashboardInfo "${swpair}")`;
     
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T2" });
+    const response = await pactRead(pactCode, { tier: "T2" });
 
     if (!response || !response.result) {
       throw new Error("Failed to retrieve swap pair dashboard info from the transaction.");
@@ -326,7 +326,7 @@ export async function getPoolPreviewData(poolId: string): Promise<PoolPreviewDat
   try {
     const pactCode = `(${KADENA_NAMESPACE}.DPL-UR.URC_0004_SWPairDashboardInfo "${poolId}")`;
     
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T5" });
+    const response = await pactRead(pactCode, { tier: "T5" });
 
     if (!response || !response.result) {
       throw new Error("Failed to retrieve pool preview data from the transaction.");
@@ -360,7 +360,7 @@ export async function getSWPairMultiDashboardInfo(swpairs: string[]): Promise<Sw
     // Format array for Pact: ["id1" "id2" "id3"]
     const pactArray = `[${swpairs.map(swpair => `"${swpair}"`).join(' ')}]`;
     
-    const response = await rawCalibratedDirtyRead(`(${KADENA_NAMESPACE}.DPL-UR.URC_0005_SWPairMultiDashboardInfo ${pactArray})`, { tier: "T5" });
+    const response = await pactRead(`(${KADENA_NAMESPACE}.DPL-UR.URC_0005_SWPairMultiDashboardInfo ${pactArray})`, { tier: "T5" });
 
     if (!response || !response.result) {
       throw new Error("Failed to retrieve multi swap pair dashboard info from the transaction.");
@@ -548,7 +548,7 @@ export async function getSwpairInternalDashboard(swpair: string): Promise<Swpair
     
     const pactCode = `(${KADENA_NAMESPACE}.DPL-UR.URC_0010_SwpairInternalDashboard "${swpair}")`;
     
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T5" });
+    const response = await pactRead(pactCode, { tier: "T5" });
 
     if (!response || !response.result) {
       throw new Error("Failed to retrieve internal dashboard data from the transaction.");
@@ -591,7 +591,7 @@ export async function calculateDirectSwap(
 
 
     
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T2" });
+    const response = await pactRead(pactCode, { tier: "T2" });
 
 
     if (!response || !response.result) {
@@ -628,7 +628,7 @@ export async function calculateInverseSwap(
     
     const pactCode = `(${KADENA_NAMESPACE}.DPL-UR.URC_0007_InverseSwap "${account}" "${swpair}" "${outputId}" ${outputAmountDecimal} "${inputId}")`;
     
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T2" });
+    const response = await pactRead(pactCode, { tier: "T2" });
 
 
     if (!response || !response.result) {
@@ -665,7 +665,7 @@ export async function calculateDirectSwapB(
       return s.includes('.') ? s : `${s}.0`;
     }).join(' ')}]`;
     const pactCode = `(${KADENA_NAMESPACE}.DPL-UR.URC_0006b_DirectSwap "${account}" "${swpair}" ${pactInputIds} ${pactInputAmounts} "${outputId}")`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T2" });
+    const response = await pactRead(pactCode, { tier: "T2" });
     if (!response?.result) throw new Error("No response");
     if (response.result.status === "failure") throw new Error(response.result.error?.message ?? "Failed");
     return response.result.data as any;
@@ -687,7 +687,7 @@ export async function calculateInverseSwapB(
   try {
     const outDecimal = outputAmount.toString().includes('.') ? outputAmount.toString() : `${outputAmount}.0`;
     const pactCode = `(${KADENA_NAMESPACE}.DPL-UR.URC_0007b_InverseSwap "${account}" "${swpair}" "${outputId}" ${outDecimal} "${inputId}")`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T2" });
+    const response = await pactRead(pactCode, { tier: "T2" });
     if (!response?.result) throw new Error("No response");
     if (response.result.status === "failure") throw new Error(response.result.error?.message ?? "Failed");
     return response.result.data as any;
@@ -707,7 +707,7 @@ export async function getCappedInverseAmount(
     
     const pactCode = `(${KADENA_NAMESPACE}.DPL-UR.URC_0008_CappedInverse "${swpair}" "${outputId}")`;
     
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T5" });
+    const response = await pactRead(pactCode, { tier: "T5" });
 
 
     if (!response || !response.result) {
@@ -739,7 +739,7 @@ export async function getUserAccountSupplies(
     const pactCode = `(${KADENA_NAMESPACE}.DPL-UR.URC_0011_AccountSuppliesForSwpair "${account}" "${swpair}")`;
 
     
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T5" });
+    const response = await pactRead(pactCode, { tier: "T5" });
 
 
 
@@ -795,7 +795,7 @@ export async function getSlippageBounds(
 
     const pactCode = `(${KADENA_NAMESPACE}.SWPU.UDC_SpawnSlippageBounds "${swpair}" ${pactInputIds} ${pactInputAmounts} "${outputId}" ${slippageDecimal})`;
 
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T2" });
+    const response = await pactRead(pactCode, { tier: "T2" });
 
     if (!response || !response.result) {
       throw new Error("Failed to retrieve slippage bounds from the transaction.");
@@ -1147,7 +1147,7 @@ export interface SmartSwapExecutionParams {
  */
 export async function getAllPoolTokens(): Promise<string[]> {
   try {
-    const response = await rawCalibratedDirtyRead(`(${KADENA_NAMESPACE}.SWP.URC_AllPoolTokens)`, { tier: "T7" });
+    const response = await pactRead(`(${KADENA_NAMESPACE}.SWP.URC_AllPoolTokens)`, { tier: "T7" });
 
     if (!response || !response.result) {
       throw new Error("Failed to retrieve pool tokens from the transaction.");
@@ -1178,7 +1178,7 @@ export async function getSmartSwapHopper(
 
     const pactCode = `(${KADENA_NAMESPACE}.SWPI.URC_Hopper "${inputId}" "${outputId}" ${amountDecimal})`;
 
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T2" });
+    const response = await pactRead(pactCode, { tier: "T2" });
 
     if (!response || !response.result) {
       throw new Error("Failed to retrieve smart swap hopper from the transaction.");
@@ -1211,7 +1211,7 @@ export async function getSmartSwapSlippageBounds(
 
     const pactCode = `(${KADENA_NAMESPACE}.SWPU.UDC_SpawnSmartSwapSlippageBounds "${inputId}" ${amountDecimal} "${outputId}" ${slippageDecimal})`;
 
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T2" });
+    const response = await pactRead(pactCode, { tier: "T2" });
 
     if (!response || !response.result) {
       throw new Error("Failed to retrieve smart swap slippage bounds.");
@@ -1302,7 +1302,7 @@ export async function executeSmartSwapWithSlippage(
  */
 export async function getTokenDecimals(tokenId: string): Promise<number> {
   try {
-    const response = await rawCalibratedDirtyRead(`(${KADENA_NAMESPACE}.DPTF.UR_Decimals "${tokenId}")`, { tier: "T7" });
+    const response = await pactRead(`(${KADENA_NAMESPACE}.DPTF.UR_Decimals "${tokenId}")`, { tier: "T7" });
 
     if (!response || !response.result || response.result.status === "failure") {
       return 8; // sensible default
@@ -1339,7 +1339,7 @@ function resolvePactDecimalLocal(val: any): number {
  */
 export async function getPoolTotalFee(swpair: string): Promise<number> {
   try {
-    const response = await rawCalibratedDirtyRead(`(${KADENA_NAMESPACE}.SWP.URC_PoolTotalFee "${swpair}")`, { tier: "T5" });
+    const response = await pactRead(`(${KADENA_NAMESPACE}.SWP.URC_PoolTotalFee "${swpair}")`, { tier: "T5" });
     if (response.result.status === "success") {
       return resolvePactDecimalLocal(response.result.data);
     }
@@ -1503,7 +1503,7 @@ export async function executeMultiSwapNoSlippage(
 export async function describeModule(moduleName: string): Promise<string | null> {
   try {
     const fqn = moduleName.includes(".") ? moduleName : `${KADENA_NAMESPACE}.${moduleName}`;
-    const response = await rawCalibratedDirtyRead(`(describe-module "${fqn}")`, { tier: "T7" });
+    const response = await pactRead(`(describe-module "${fqn}")`, { tier: "T7" });
     if (response.result.status === "success") {
       const data = response.result.data as any;
       return data?.code || JSON.stringify(data);
@@ -1517,7 +1517,7 @@ export async function describeModule(moduleName: string): Promise<string | null>
 /** Fetch SWP principal tokens list */
 export async function getSWPPrincipals(): Promise<string[]> {
   try {
-    const res = await rawCalibratedDirtyRead(`(${KADENA_NAMESPACE}.SWP.UR_Principals)`, { tier: "T7" });
+    const res = await pactRead(`(${KADENA_NAMESPACE}.SWP.UR_Principals)`, { tier: "T7" });
     if (res.result.status === "failure") return [];
     return (Array.isArray(res.result.data) ? res.result.data : []) as string[];
   } catch { return []; }
@@ -1526,7 +1526,7 @@ export async function getSWPPrincipals(): Promise<string[]> {
 /** Fetch SWP spawn limit (WSTOA minimum to create a pool) */
 export async function getSWPSpawnLimit(): Promise<string> {
   try {
-    const res = await rawCalibratedDirtyRead(`(${KADENA_NAMESPACE}.SWP.UR_SpawnLimit)`, { tier: "T7" });
+    const res = await pactRead(`(${KADENA_NAMESPACE}.SWP.UR_SpawnLimit)`, { tier: "T7" });
     if (res.result.status === "failure") return "N/A";
     const d = res.result.data;
     return d && typeof d === "object" && (d as any).decimal ? (d as any).decimal : String(d ?? "N/A");
@@ -1536,7 +1536,7 @@ export async function getSWPSpawnLimit(): Promise<string> {
 /** Fetch SWP inactive limit (WSTOA below which swap auto-deactivates) */
 export async function getSWPInactiveLimit(): Promise<string> {
   try {
-    const res = await rawCalibratedDirtyRead(`(${KADENA_NAMESPACE}.SWP.UR_InactiveLimit)`, { tier: "T7" });
+    const res = await pactRead(`(${KADENA_NAMESPACE}.SWP.UR_InactiveLimit)`, { tier: "T7" });
     if (res.result.status === "failure") return "N/A";
     const d = res.result.data;
     return d && typeof d === "object" && (d as any).decimal ? (d as any).decimal : String(d ?? "N/A");
@@ -1577,7 +1577,7 @@ export async function getTrueFungibleLPEntry(
       ? `(${KADENA_NAMESPACE}.DPL-UR.URC_0008b_TrueFungibleLPEntry "${account}" "${swpair}" ${boolStr})`
       : `(try false (${KADENA_NAMESPACE}.DPL-UR.URC_0008b_TrueFungibleLPEntry "${account}" "${swpair}" ${boolStr}))`;
 
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T2" });
+    const response = await pactRead(pactCode, { tier: "T2" });
 
     if (!response?.result || response.result.status === "failure") return null;
 
@@ -1623,7 +1623,7 @@ export function formatLPEntry(entry: TrueFungibleLPEntry) {
  */
 export async function getOwnedSwapPairs(account: string): Promise<string[]> {
   try {
-    const response = await rawCalibratedDirtyRead(`(${KADENA_NAMESPACE}.SWP.URD_OwnedSwapPairs "${account}")`, { tier: "T5" });
+    const response = await pactRead(`(${KADENA_NAMESPACE}.SWP.URD_OwnedSwapPairs "${account}")`, { tier: "T5" });
 
     if (!response?.result || response.result.status === "failure") return [];
 
@@ -1643,7 +1643,7 @@ export async function getSwpairManagementPoolSettings(swpair: string): Promise<a
   try {
     const pactCode = `(${KADENA_NAMESPACE}.DPL-UR.URC_0014_SwpairManagementPoolSettings "${swpair}")`;
 
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T5" });
+    const response = await pactRead(pactCode, { tier: "T5" });
 
     if (!response || !response.result) {
       throw new Error("Failed to retrieve pool settings from the transaction.");
@@ -1669,7 +1669,7 @@ export async function getSwpairManagementFeeSettings(swpair: string): Promise<an
   try {
     const pactCode = `(${KADENA_NAMESPACE}.DPL-UR.URC_0015_SwpairManagementFeeSettings "${swpair}")`;
 
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T5" });
+    const response = await pactRead(pactCode, { tier: "T5" });
 
     if (!response || !response.result) {
       throw new Error("Failed to retrieve fee settings from the transaction.");
@@ -1693,7 +1693,7 @@ export async function getSwpairManagementFeeSettings(swpair: string): Promise<an
 export async function getUsagePrice(usageType: string): Promise<number | null> {
   try {
     const pactCode = `(${KADENA_NAMESPACE}.DALOS.UR_UsagePrice "${usageType}")`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T5" });
+    const response = await pactRead(pactCode, { tier: "T5" });
     if (response?.result?.status === "success") {
       const d = response.result.data;
       return typeof d === "number" ? d : (typeof d === "object" && (d as any)?.decimal ? parseFloat((d as any).decimal) : null);
@@ -1714,7 +1714,7 @@ export async function getBranding(entityId: string, pending: boolean): Promise<a
   try {
     const pactCode = `(${KADENA_NAMESPACE}.BRD.UR_Branding "${entityId}" ${pending})`;
 
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T5" });
+    const response = await pactRead(pactCode, { tier: "T5" });
 
     if (!response || !response.result) {
       throw new Error("Failed to retrieve branding from the transaction.");
@@ -1760,7 +1760,7 @@ export async function getTrueFungibleHeader(
 ): Promise<TrueFungibleHeaderData | null> {
   try {
     const pactCode = `(${KADENA_NAMESPACE}.DPL-UR.URC_0016_TruefungibleHeader "${account}")`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T5" });
+    const response = await pactRead(pactCode, { tier: "T5" });
 
     if (!response?.result || response.result.status === "failure") return null;
     const data = response.result.data;
@@ -1799,7 +1799,7 @@ export async function getTrueFungibleEntries(
   try {
     const listItems = tokenIds.map(id => `"${id}"`).join(" ");
     const pactCode = `(${KADENA_NAMESPACE}.DPL-UR.URC_0008a_TrueFungibleEntryMapper "${account}" [${listItems}])`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T5" });
+    const response = await pactRead(pactCode, { tier: "T5" });
 
     if (!response?.result || response.result.status === "failure") return tokenIds.map(() => null);
     const data = response.result.data;
@@ -1828,7 +1828,7 @@ export async function getNativeLPEntries(
   try {
     const listItems = lpIds.map(id => `"${id}"`).join(" ");
     const pactCode = `(${KADENA_NAMESPACE}.DPL-UR.URC_0008b_TrueFungibleNativeLPMapper "${account}" [${listItems}])`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T5" });
+    const response = await pactRead(pactCode, { tier: "T5" });
 
     if (!response?.result || response.result.status === "failure") return lpIds.map(() => null);
     const data = response.result.data;
@@ -1857,7 +1857,7 @@ export async function getFrozenLPEntries(
   try {
     const listItems = lpIds.map(id => `"${id}"`).join(" ");
     const pactCode = `(${KADENA_NAMESPACE}.DPL-UR.URC_0008b_TrueFungibleFrozenLPMapper "${account}" [${listItems}])`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T5" });
+    const response = await pactRead(pactCode, { tier: "T5" });
 
     if (!response?.result || response.result.status === "failure") return lpIds.map(() => null);
     const data = response.result.data;
@@ -1902,7 +1902,7 @@ export function formatTFEntry(entry: TrueFungibleEntryData) {
 export async function getSwpairFromLpId(lpId: string): Promise<string | null> {
   try {
     const pactCode = `(${KADENA_NAMESPACE}.SWP.UR_GetLpSwpair "${lpId}")`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T5" });
+    const response = await pactRead(pactCode, { tier: "T5" });
 
     if (!response?.result || response.result.status === "failure") return null;
     const data = response.result.data;
@@ -1922,7 +1922,7 @@ export async function getSwpairsFromLpIds(lpIds: string[]): Promise<(string | nu
     const listItems = lpIds.map(id => `"${id}"`).join(" ");
     const pactCode = `(map (lambda (lid:string) (try "" (${KADENA_NAMESPACE}.SWP.UR_GetLpSwpair lid))) [${listItems}])`;
 
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T5" });
+    const response = await pactRead(pactCode, { tier: "T5" });
 
     if (!response?.result || response.result.status === "failure") return lpIds.map(() => null);
     const data = response.result.data;
@@ -1974,7 +1974,7 @@ export async function getTrueFungibleButtonState(
 ): Promise<TrueFungibleButtonState | null> {
   try {
     const pactCode = `(${KADENA_NAMESPACE}.DPL-UR.URC_0017_TruefungibleButton "${account}" "${dptfId}")`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T5" });
+    const response = await pactRead(pactCode, { tier: "T5" });
 
     if (!response?.result || response.result.status === "failure") return null;
     const data = response.result.data;
@@ -2020,7 +2020,7 @@ export async function getOrtoFungibleHeader(
 ): Promise<OrtoFungibleHeaderData | null> {
   try {
     const pactCode = `(${KADENA_NAMESPACE}.DPL-UR.URC_0018_OrtofungibleHeader "${account}")`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T5" });
+    const response = await pactRead(pactCode, { tier: "T5" });
 
     if (!response?.result || response.result.status === "failure") return null;
     const data = response.result.data;
@@ -2107,7 +2107,7 @@ export async function getOrtoFungibleEntries(
   try {
     const listItems = tokenIds.map(id => `"${id}"`).join(" ");
     const pactCode = `(${KADENA_NAMESPACE}.DPL-UR.URC_0009a_OrtoFungibleEntryMapper "${account}" [${listItems}])`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T5" });
+    const response = await pactRead(pactCode, { tier: "T5" });
 
     if (!response?.result || response.result.status === "failure") return tokenIds.map(() => null);
     const data = response.result.data;
@@ -2135,7 +2135,7 @@ export async function getOrtoFungibleSleepingLPEntries(
   try {
     const listItems = lpIds.map(id => `"${id}"`).join(" ");
     const pactCode = `(${KADENA_NAMESPACE}.DPL-UR.URC_0009b_OrtoFungibleSleepingLPMapper "${account}" [${listItems}])`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T5" });
+    const response = await pactRead(pactCode, { tier: "T5" });
 
     if (!response?.result || response.result.status === "failure") return lpIds.map(() => null);
     const data = response.result.data;
@@ -2163,7 +2163,7 @@ export async function getOrtoFungibleNoncesSupplies(
   try {
     const nonceList = nonces.join(" ");
     const pactCode = `(${KADENA_NAMESPACE}.DPOF.UR_NoncesSupplies "${dpofId}" [${nonceList}])`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T5" });
+    const response = await pactRead(pactCode, { tier: "T5" });
 
     if (!response?.result || response.result.status === "failure") return nonces.map(() => "0");
     const data = response.result.data;
@@ -2193,7 +2193,7 @@ export async function getOrtoFungibleNoncesMetaDatas(
   try {
     const nonceList = nonces.join(" ");
     const pactCode = `(${KADENA_NAMESPACE}.DPOF.UR_NoncesMetaDatas "${dpofId}" [${nonceList}])`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T5" });
+    const response = await pactRead(pactCode, { tier: "T5" });
 
     if (!response?.result || response.result.status === "failure") return nonces.map(() => null);
     const data = response.result.data;
@@ -2250,7 +2250,7 @@ export async function getOrtofungibleButtonState(
   try {
     const nonceList = `[${selectedNonces.join(" ")}]`;
     const pactCode = `(${KADENA_NAMESPACE}.DPL-UR.URC_0019_OrtofungibleButton "${account}" "${dpofId}" ${nonceList})`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T5" });
+    const response = await pactRead(pactCode, { tier: "T5" });
 
     if (!response?.result || response.result.status === "failure") return null;
     const data = response.result.data;
@@ -2268,7 +2268,7 @@ export async function getHibernatingNonceData(
 ): Promise<HibernatingNonceData | null> {
   try {
     const pactCode = `(${KADENA_NAMESPACE}.DPL-UR.URC_0020_HibernatingNonceData "${dpofId}" ${nonce})`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T5" });
+    const response = await pactRead(pactCode, { tier: "T5" });
 
     if (!response?.result || response.result.status === "failure") return null;
     const data = response.result.data;
@@ -2302,7 +2302,7 @@ export async function getCollectablesHeader(
 ): Promise<CollectablesHeaderData | null> {
   try {
     const pactCode = `(${KADENA_NAMESPACE}.DPL-UR.URC_0021_CollectablesHeader "${account}")`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T5" });
+    const response = await pactRead(pactCode, { tier: "T5" });
     if (!response?.result || response.result.status === "failure") return null;
     const data = (response.result as any).data;
     if (!data || typeof data !== "object") return null;
@@ -2334,7 +2334,7 @@ export async function getSemifungibleEntries(
   try {
     const idList = `[${dpdcIds.map(id => `"${id}"`).join(" ")}]`;
     const pactCode = `(${KADENA_NAMESPACE}.DPL-UR.URC_0022a_SemifungibleEntryMapper "${account}" ${idList})`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T5" });
+    const response = await pactRead(pactCode, { tier: "T5" });
     if (!response?.result || response.result.status === "failure") return dpdcIds.map(() => null);
     const data = (response.result as any).data;
     if (!Array.isArray(data)) return dpdcIds.map(() => null);
@@ -2352,7 +2352,7 @@ export async function getNonfungibleEntries(
   try {
     const idList = `[${dpdcIds.map(id => `"${id}"`).join(" ")}]`;
     const pactCode = `(${KADENA_NAMESPACE}.DPL-UR.URC_0022a_NonfungibleEntryMapper "${account}" ${idList})`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T5" });
+    const response = await pactRead(pactCode, { tier: "T5" });
     if (!response?.result || response.result.status === "failure") return dpdcIds.map(() => null);
     const data = (response.result as any).data;
     if (!Array.isArray(data)) return dpdcIds.map(() => null);
@@ -2446,7 +2446,7 @@ export async function getCollectableNonceData(
   const nonceList = nonces.join(" ");
   const pactCode = `(${KADENA_NAMESPACE}.DPL-UR.URC_0023_CollectablesNonceData "${dpdcId}" ${isSFT} [${nonceList}])`;
   try {
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T5" });
+    const response = await pactRead(pactCode, { tier: "T5" });
     const data = (response as any)?.result?.data;
     if (Array.isArray(data)) return data.map(parseNonceData);
     return [];
@@ -2463,7 +2463,7 @@ export async function getCollectableNonceSupply(
 ): Promise<number> {
   const pactCode = `(${KADENA_NAMESPACE}.DPDC.UR_NonceSupply "${dpdcId}" ${isSFT} ${nonce})`;
   try {
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T5" });
+    const response = await pactRead(pactCode, { tier: "T5" });
     const data = (response as any)?.result?.data;
     if (typeof data === "number") return data;
     if (typeof data === "object" && data !== null) {
@@ -2491,7 +2491,7 @@ export async function getAccountNoncesSupplies(
   try {
     const nonceList = nonces.join(" ");
     const pactCode = `(${KADENA_NAMESPACE}.DPDC.UR_AccountNoncesSupplies "${account}" "${dpdcId}" ${isSFT} [${nonceList}])`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T5" });
+    const response = await pactRead(pactCode, { tier: "T5" });
     if (!response?.result || response.result.status === "failure") return nonces.map(() => 0);
     const data = (response.result as any).data;
     if (!Array.isArray(data)) return nonces.map(() => 0);
@@ -2539,7 +2539,7 @@ export async function getCollectableSets(
 ): Promise<SetDefinition[]> {
   try {
     const pactCode = `(${KADENA_NAMESPACE}.DPL-UR.URC_0024_SetReader "${dpdcId}" ${isSFT})`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T5" });
+    const response = await pactRead(pactCode, { tier: "T5" });
     if (!response?.result || response.result.status === "failure") return [];
     const data = (response.result as any).data;
     if (!Array.isArray(data)) return [];
@@ -2566,7 +2566,7 @@ export async function filterNoncesByClass(
   try {
     const nonceList = `[${nonces.join(" ")}]`;
     const pactCode = `(${KADENA_NAMESPACE}.DPL-UR.URC_0025_FilterNoncesByClass "${dpdcId}" ${isSFT} ${nonceList} ${nonceClass})`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T5" });
+    const response = await pactRead(pactCode, { tier: "T5" });
     if (!response?.result || response.result.status === "failure") return [];
     const data = (response.result as any).data;
     if (!Array.isArray(data)) return [];
@@ -2598,7 +2598,7 @@ export async function filterNoncesByClasses(
     const nonceList = `[${nonces.join(" ")}]`;
     const classList = `[${nonceClasses.join(" ")}]`;
     const pactCode = `(${KADENA_NAMESPACE}.DPL-UR.URC_0025a_FilterNoncesByClasses "${dpdcId}" ${isSFT} ${nonceList} ${classList})`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T5" });
+    const response = await pactRead(pactCode, { tier: "T5" });
     if (!response?.result || response.result.status === "failure") return nonceClasses.map(() => []);
     const data = (response.result as any).data;
     if (!Array.isArray(data)) return nonceClasses.map(() => []);
@@ -2640,7 +2640,7 @@ export async function getCollectablesButtonState(
   try {
     const nonceList = `[${selectedNonces.join(" ")}]`;
     const pactCode = `(${KADENA_NAMESPACE}.DPL-UR.URC_0026_CollectablesButtons "${account}" "${dpdcId}" ${isSFT} ${nonceList})`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T5" });
+    const response = await pactRead(pactCode, { tier: "T5" });
     if (!response?.result || response.result.status === "failure") return null;
     const data = (response.result as any).data;
     if (!data || typeof data !== "object") return null;

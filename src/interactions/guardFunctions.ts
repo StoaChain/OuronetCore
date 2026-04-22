@@ -8,7 +8,7 @@ import {
 } from "../constants";
 import { IKeyset } from "../guard";
 import { Pact, createClient } from "@kadena/client";
-import { rawCalibratedDirtyRead } from "../reads";
+import { pactRead } from "../reads";
 import { universalSignTransaction, fromKeypair } from "../signing";
 import { createSimulationError, logDetailedError } from "../errors";
 import { IKadenaKeypair } from "./ouroFunctions";
@@ -51,7 +51,7 @@ export async function getRotateGuardInfo(
 ): Promise<any | null> {
   try {
     const pactCode = `(${KADENA_NAMESPACE}.INFO-ZERO.DALOS-INFO|URC_RotateGuard "${patron}" "${account}")`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T7" });
+    const response = await pactRead(pactCode, { tier: "T7" });
 
     if (response?.result?.status === "success") {
       return (response.result as any).data;
@@ -71,7 +71,7 @@ export async function describeKeyset(
   keysetName: string
 ): Promise<IDescribedKeyset> {
   const pactCode = `(describe-keyset "${keysetName}")`;
-  const response = await rawCalibratedDirtyRead(pactCode, { tier: "T7" });
+  const response = await pactRead(pactCode, { tier: "T7" });
 
   if (response?.result?.status === "success") {
     const data = (response.result as any).data;

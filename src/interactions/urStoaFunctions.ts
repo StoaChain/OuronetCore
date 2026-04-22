@@ -8,7 +8,7 @@
 
 import { Pact, createClient } from "@kadena/client";
 import { calculateAutoGasLimit } from "../gas";
-import { rawCalibratedDirtyRead } from "../reads";
+import { pactRead } from "../reads";
 import {
   KADENA_CHAIN_ID,
   KADENA_NAMESPACE,
@@ -72,7 +72,7 @@ export interface UrStoaGuardResult {
 export async function getUrStoaBalance(account: string): Promise<number> {
   try {
     const pactCode = `(try 0.0 (coin.UR_UR|Balance "${account}"))`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T5" });
+    const response = await pactRead(pactCode, { tier: "T5" });
     if (response?.result?.status === "success") {
       const data = (response.result as any).data;
       if (typeof data === "number") return data;
@@ -91,7 +91,7 @@ export async function getUrStoaBalance(account: string): Promise<number> {
 async function describeKeyset(ksRef: string): Promise<{ keys: string[]; pred: string } | null> {
   try {
     const pactCode = `(describe-keyset "${ksRef}")`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T7" });
+    const response = await pactRead(pactCode, { tier: "T7" });
     if (response?.result?.status === "success") {
       const data = (response.result as any).data;
       if (data && Array.isArray(data.keys)) {
@@ -110,7 +110,7 @@ export async function getUrStoaGuard(account: string): Promise<UrStoaGuardResult
   const empty: UrStoaGuardResult = { exists: false, isKeyset: false, keys: [], pred: "" };
   try {
     const pactCode = `(try false (coin.UR_UR|Guard "${account}"))`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T7" });
+    const response = await pactRead(pactCode, { tier: "T7" });
     if (response?.result?.status === "success") {
       const data = (response.result as any).data;
       if (data === false || data === "false") return empty;
@@ -515,7 +515,7 @@ export async function executeUnstakeUrStoa(params: UnstakeUrStoaParams): Promise
 export async function checkCoinAccountExists(account: string): Promise<boolean> {
   const pactCode = `(if (= (typeof (try false (coin.UR_Balance "${account}"))) "bool") false true)`;
   try {
-    const r = await rawCalibratedDirtyRead(pactCode, { tier: "T5" });
+    const r = await pactRead(pactCode, { tier: "T5" });
     if (r?.result?.status === "success") return r.result.data === true;
     return false;
   } catch { return false; }

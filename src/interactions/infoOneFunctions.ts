@@ -2,7 +2,7 @@ import {
   KADENA_NAMESPACE,
 } from "../constants";
 import { formatDecimalForPact } from "../pact";
-import { rawCalibratedDirtyRead } from "../reads";
+import { pactRead } from "../reads";
 
 /**
  * Parse transfer preview data to extract relevant information
@@ -43,7 +43,7 @@ export async function getTransferPreview(
   try {
     const decimalAmount = formatDecimalForPact(amount);
     
-    const response = await rawCalibratedDirtyRead(`(${KADENA_NAMESPACE}.INFO-ONE.DPTF|INFO_Transfer "${patronAddress}" "${tokenId}" "${senderAddress}" "${receiverAddress}" ${decimalAmount})`, { tier: "T2" });
+    const response = await pactRead(`(${KADENA_NAMESPACE}.INFO-ONE.DPTF|INFO_Transfer "${patronAddress}" "${tokenId}" "${senderAddress}" "${receiverAddress}" ${decimalAmount})`, { tier: "T2" });
 
     if (!response || !response.result || response.result.status === "failure") {
       return null;
@@ -70,7 +70,7 @@ export async function getCoilPreviewInfo(
   try {
     const decimalAmount = formatDecimalForPact(amount);
     
-    const response = await rawCalibratedDirtyRead(`(${KADENA_NAMESPACE}.INFO-ONE.ATS|INFO_Coil "${patronAddress}" "${coilerAddress}" "${atsId}" "${rewardTokenId}" ${decimalAmount})`, { tier: "T2" });
+    const response = await pactRead(`(${KADENA_NAMESPACE}.INFO-ONE.ATS|INFO_Coil "${patronAddress}" "${coilerAddress}" "${atsId}" "${rewardTokenId}" ${decimalAmount})`, { tier: "T2" });
 
     if (!response || !response.result || response.result.status === "failure") {
       return null;
@@ -98,7 +98,7 @@ export async function getCurlPreviewInfo(
   try {
     const decimalAmount = formatDecimalForPact(amount);
     
-    const response = await rawCalibratedDirtyRead(`(${KADENA_NAMESPACE}.INFO-ONE.ATS|INFO_Curl "${patronAddress}" "${curlerAddress}" "${ats1Id}" "${ats2Id}" "${rewardTokenId}" ${decimalAmount})`, { tier: "T2" });
+    const response = await pactRead(`(${KADENA_NAMESPACE}.INFO-ONE.ATS|INFO_Curl "${patronAddress}" "${curlerAddress}" "${ats1Id}" "${ats2Id}" "${rewardTokenId}" ${decimalAmount})`, { tier: "T2" });
 
 
 
@@ -129,7 +129,7 @@ export async function getBrumatePreviewInfo(
   try {
     const decimalAmount = formatDecimalForPact(amount);
     
-    const response = await rawCalibratedDirtyRead(`(${KADENA_NAMESPACE}.INFO-ONE.ATS|INFO_Brumate "${patronAddress}" "${brumatorAddress}" "${ats1Id}" "${ats2Id}" "${rewardTokenId}" ${decimalAmount} ${lockDays})`, { tier: "T2" });
+    const response = await pactRead(`(${KADENA_NAMESPACE}.INFO-ONE.ATS|INFO_Brumate "${patronAddress}" "${brumatorAddress}" "${ats1Id}" "${ats2Id}" "${rewardTokenId}" ${decimalAmount} ${lockDays})`, { tier: "T2" });
 
     if (!response || !response.result || response.result.status === "failure") {
       return null;
@@ -157,7 +157,7 @@ export async function getConstrictPreviewInfo(
   try {
     const decimalAmount = formatDecimalForPact(amount);
     
-    const response = await rawCalibratedDirtyRead(`(${KADENA_NAMESPACE}.INFO-ONE.ATS|INFO_Constrict "${patronAddress}" "${constracterAddress}" "${atsId}" "${rewardTokenId}" ${decimalAmount} ${lockDays})`, { tier: "T2" });
+    const response = await pactRead(`(${KADENA_NAMESPACE}.INFO-ONE.ATS|INFO_Constrict "${patronAddress}" "${constracterAddress}" "${atsId}" "${rewardTokenId}" ${decimalAmount} ${lockDays})`, { tier: "T2" });
 
     if (!response || !response.result || response.result.status === "failure") {
       return null;
@@ -179,7 +179,7 @@ export async function getSublimateInfo(client: string, target: string, amount: n
   try {
     const decimalAmount = amount % 1 === 0 ? `${amount}.0` : String(amount);
     const pactCode = `(${KADENA_NAMESPACE}.INFO-ONE.ORBR|INFO_Sublimate "${client}" "${target}" ${decimalAmount})`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T2" });
+    const response = await pactRead(pactCode, { tier: "T2" });
     if (response?.result?.status === "success") {
       return (response.result as any).data;
     }
@@ -197,7 +197,7 @@ export async function getSublimateInfo(client: string, target: string, amount: n
 export async function getFirestarterInfo(firestarter: string): Promise<any> {
   try {
     const pactCode = `(${KADENA_NAMESPACE}.INFO-ONE.SWP|INFO_Firestarter "${firestarter}")`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T2" });
+    const response = await pactRead(pactCode, { tier: "T2" });
     if (response?.result?.status === "success") {
       return (response.result as any).data;
     }
@@ -222,7 +222,7 @@ export async function getTransferInfo(
   try {
     const decimalAmount = amount % 1 === 0 ? `${amount}.0` : String(amount);
     const pactCode = `(${KADENA_NAMESPACE}.INFO-ONE.DPTF|INFO_Transfer "${patron}" "${tokenId}" "${sender}" "${receiver}" ${decimalAmount})`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T2" });
+    const response = await pactRead(pactCode, { tier: "T2" });
     if (response?.result?.status === "success") {
       return (response.result as any).data;
     }
@@ -241,7 +241,7 @@ export async function getRecoveryPrimordial(
   residentAddress: string
 ): Promise<Record<string, any> | null> {
   try {
-    const response = await rawCalibratedDirtyRead(`(${KADENA_NAMESPACE}.DPL-UR.URC_0012_RecoveryPrimordial "${atsId}" "${residentAddress}")`, { tier: "T2" });
+    const response = await pactRead(`(${KADENA_NAMESPACE}.DPL-UR.URC_0012_RecoveryPrimordial "${atsId}" "${residentAddress}")`, { tier: "T2" });
 
     if (!response || !response.result || response.result.status === "failure") {
       return null;
@@ -266,7 +266,7 @@ export async function getColdRecoveryInfo(
   try {
     const decimalRa = ra.includes(".") ? ra : ra + ".0";
     const pactCode = `(${KADENA_NAMESPACE}.INFO-ONE.ATS|INFO_ColdRecovery "${patronAddress}" "${recovererAddress}" "${atsId}" ${decimalRa})`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T2" });
+    const response = await pactRead(pactCode, { tier: "T2" });
     if (!response || !response.result || response.result.status === "failure") return null;
     return (response.result as any).data ?? null;
   } catch (error) {
@@ -287,7 +287,7 @@ export async function getDirectRecoveryInfo(
   try {
     const decimalRa = ra.includes(".") ? ra : ra + ".0";
     const pactCode = `(${KADENA_NAMESPACE}.INFO-ONE.ATS|INFO_DirectRecovery "${patronAddress}" "${recovererAddress}" "${atsId}" ${decimalRa})`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T2" });
+    const response = await pactRead(pactCode, { tier: "T2" });
     if (!response || !response.result || response.result.status === "failure") return null;
     return (response.result as any).data ?? null;
   } catch (error) {
@@ -306,7 +306,7 @@ export async function getMaxRecoveryAmount(
 ): Promise<string | null> {
   try {
     const pactCode = `(${KADENA_NAMESPACE}.DPL-UR.URC_MaxRecoveryAmount "${atsId}" "${residentAddress}")`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T2" });
+    const response = await pactRead(pactCode, { tier: "T2" });
     if (!response || !response.result || response.result.status === "failure") return null;
     const raw = (response.result as any).data;
     if (raw === undefined || raw === null) return null;
@@ -323,7 +323,7 @@ export async function getMaxRecoveryAmount(
 // (ouronet-ns.INFO-ONE.ATS|INFO_Cull <patron:string> <culler:string> <ats:string>)
 
 export async function getCullInfo(patronAddress: string, cullerAddress: string, atsId: string): Promise<any> {
-  const r = await rawCalibratedDirtyRead(`(${KADENA_NAMESPACE}.INFO-ONE.ATS|INFO_Cull "${patronAddress}" "${cullerAddress}" "${atsId}")`, { tier: "T2" });
+  const r = await pactRead(`(${KADENA_NAMESPACE}.INFO-ONE.ATS|INFO_Cull "${patronAddress}" "${cullerAddress}" "${atsId}")`, { tier: "T2" });
   if (!r?.result || r.result.status === "failure") return null;
   return (r.result as any).data ?? null;
 }
@@ -399,7 +399,7 @@ export async function getHibernatedNoncesDisplay(
       ? `(sort ["hibernating-fee-promile"] ${inner})`
       : inner;
 
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T2" });
+    const response = await pactRead(pactCode, { tier: "T2" });
 
     if (!response || !response.result || response.result.status === "failure") return null;
     const data = (response.result as any).data;
@@ -423,7 +423,7 @@ export async function getAwakeInfo(
 ): Promise<Record<string, unknown> | null> {
   try {
     const pactCode = `(${KADENA_NAMESPACE}.INFO-ONE.VST|INFO_Awake "${patron}" "${awaker}" "${dpof}" ${nonce})`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T2" });
+    const response = await pactRead(pactCode, { tier: "T2" });
 
     if (!response || !response.result || response.result.status === "failure") return null;
     return (response.result as any).data ?? null;
@@ -445,7 +445,7 @@ export async function getSlumberInfo(
   try {
     const nonceList = `[${nonces.join(" ")}]`;
     const pactCode = `(${KADENA_NAMESPACE}.INFO-ONE.VST|INFO_Slumber "${patron}" "${merger}" "${dpof}" ${nonceList})`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T2" });
+    const response = await pactRead(pactCode, { tier: "T2" });
 
     if (!response || !response.result || response.result.status === "failure") return null;
     return (response.result as any).data ?? null;
@@ -464,7 +464,7 @@ export async function getClearDispoInfo(
   accountAddress: string
 ): Promise<any> {
   try {
-    const response = await rawCalibratedDirtyRead(`(${KADENA_NAMESPACE}.INFO-ONE.DPTF|INFO_ClearDispo "${patronAddress}" "${accountAddress}")`, { tier: "T2" });
+    const response = await pactRead(`(${KADENA_NAMESPACE}.INFO-ONE.DPTF|INFO_ClearDispo "${patronAddress}" "${accountAddress}")`, { tier: "T2" });
     if (response.result.status === "failure") return null;
     return (response.result as any).data ?? null;
   } catch {
@@ -492,7 +492,7 @@ export async function getInfoAddLiquidity(
     }).join(" ")}]`;
     const decKdaPid = kdaPid.includes(".") ? kdaPid : kdaPid + ".0";
     const pactCode = `(${KADENA_NAMESPACE}.INFO-ONE.SWP|INFO_AddLiquidity "${patron}" "${account}" "${swpair}" ${pactInputAmounts} ${decKdaPid})`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T2" });
+    const response = await pactRead(pactCode, { tier: "T2" });
     if (!response?.result || response.result.status === "failure") return null;
     return response.result.data;
   } catch (error) {
@@ -517,7 +517,7 @@ export async function getInfoFuel(
       return s.includes(".") ? s : s + ".0";
     }).join(" ")}]`;
     const pactCode = `(${KADENA_NAMESPACE}.INFO-ONE.SWP|INFO_Fuel "${patron}" "${account}" "${swpair}" ${pactInputAmounts})`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T2" });
+    const response = await pactRead(pactCode, { tier: "T2" });
     if (!response?.result || response.result.status === "failure") return null;
     return response.result.data;
   } catch (error) {
@@ -543,7 +543,7 @@ export async function getInfoSinglePoolSwap(
   try {
     const decAmount = formatDecimalForPact(inputAmount);
     const pactCode = `(${KADENA_NAMESPACE}.INFO-ONE.SWP|INFO_SinglePoolSwap "${patron}" "${account}" "${swpair}" "${inputId}" ${decAmount} "${outputId}")`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T2" });
+    const response = await pactRead(pactCode, { tier: "T2" });
     if (!response?.result || response.result.status === "failure") return null;
     return response.result.data;
   } catch (error) {
@@ -571,7 +571,7 @@ export async function getInfoMultiPoolSwap(
       return s.includes(".") ? s : s + ".0";
     }).join(" ")}]`;
     const pactCode = `(${KADENA_NAMESPACE}.INFO-ONE.SWP|INFO_MultiPoolSwap "${patron}" "${account}" "${swpair}" ${pactInputIds} ${pactInputAmounts} "${outputId}")`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T2" });
+    const response = await pactRead(pactCode, { tier: "T2" });
     if (!response?.result || response.result.status === "failure") return null;
     return response.result.data;
   } catch (error) {
@@ -593,7 +593,7 @@ export async function getInfoRemoveLiquidity(
   try {
     const decLpAmount = lpAmount.includes(".") ? lpAmount : lpAmount + ".0";
     const pactCode = `(${KADENA_NAMESPACE}.INFO-ONE.SWP|INFO_RemoveLiquidity "${patron}" "${account}" "${swpair}" ${decLpAmount})`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T2" });
+    const response = await pactRead(pactCode, { tier: "T2" });
     console.log("[INFO_RemoveLiquidity] pactCode:", pactCode);
     console.log("[INFO_RemoveLiquidity] response:", JSON.stringify(response?.result, null, 2));
     if (!response?.result || response.result.status === "failure") {

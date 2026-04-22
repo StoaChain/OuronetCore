@@ -11,7 +11,7 @@ import { IKeyset } from "../guard";
 import { Pact, createClient } from "@kadena/client";
 import { universalSignTransaction, fromKeypair } from "../signing";
 import { createSigningError, createSimulationError, logDetailedError } from "../errors";
-import { rawCalibratedDirtyRead } from "../reads";
+import { pactRead } from "../reads";
 
 export interface AccountSelectorData {
   "iz-activated": boolean;
@@ -31,7 +31,7 @@ export interface AccountSelectorData {
 export async function getAccountSelectorData(accounts: string[], options?: { skipTempWatcher?: boolean }): Promise<AccountSelectorData[]> {
   const accountsList = accounts.map(a => `"${a}"`).join(" ");
   const pactCode = `(${KADENA_NAMESPACE}.DPL-UR.URC_0027_AccountSelectorMapper [${accountsList}])`;
-  const response = await rawCalibratedDirtyRead(pactCode, { tier: "T5", skipTempWatcher: options?.skipTempWatcher });
+  const response = await pactRead(pactCode, { tier: "T5", skipTempWatcher: options?.skipTempWatcher });
   
   if (!response?.result || (response.result as any).status === "failure") {
     console.error("AccountSelectorMapper failed:", response);
@@ -52,7 +52,7 @@ export async function getStoaAccountSelectorData(accounts: string[]): Promise<St
   if (accounts.length === 0) return [];
   const accountsList = accounts.map(a => `"${a}"`).join(" ");
   const pactCode = `(${KADENA_NAMESPACE}.DPL-UR.URC_0028_StoaAccountSelectorMapper [${accountsList}])`;
-  const response = await rawCalibratedDirtyRead(pactCode, { tier: "T5" });
+  const response = await pactRead(pactCode, { tier: "T5" });
   
   if (!response?.result || (response.result as any).status === "failure") {
     console.error("StoaAccountSelectorMapper failed:", response);
@@ -71,7 +71,7 @@ export interface AccountOverviewData {
 export async function getAccountOverview(account: string): Promise<AccountOverviewData | null> {
   if (!account) return null;
   const pactCode = `(${KADENA_NAMESPACE}.DPL-UR.URC_0029_AccountOverview "${account}")`;
-  const response = await rawCalibratedDirtyRead(pactCode, { tier: "T7" });
+  const response = await pactRead(pactCode, { tier: "T7" });
 
   if (!response?.result || (response.result as any).status === "failure") {
     console.error("AccountOverview failed:", response);
@@ -93,7 +93,7 @@ function safeCreationTime(): number {
 // import { kadenaSignWithKeyPair } from "@kadena/hd-wallet";
 
 export async function isAdministrativePause(): Promise<boolean> {
-  const response = await rawCalibratedDirtyRead(`(${KADENA_NAMESPACE}.DALOS.UR_GAP)`, { tier: "T7" });
+  const response = await pactRead(`(${KADENA_NAMESPACE}.DALOS.UR_GAP)`, { tier: "T7" });
 
   if (!response || !response.result) {
     throw new Error("Failed to retrieve data from the transaction.");
@@ -103,7 +103,7 @@ export async function isAdministrativePause(): Promise<boolean> {
 }
 
 export async function kadenaLedger(address: string): Promise<any> {
-  const response = await rawCalibratedDirtyRead(`(${KADENA_NAMESPACE}.DALOS.UR_KadenaLedger "${address}")`, { tier: "T5" });
+  const response = await pactRead(`(${KADENA_NAMESPACE}.DALOS.UR_KadenaLedger "${address}")`, { tier: "T5" });
 
   if (!response || !response.result) {
     throw new Error("Failed to retrieve data from the transaction.");
@@ -136,7 +136,7 @@ export async function kadenaLedger(address: string): Promise<any> {
 export const getKadenaAccountOwner = async (
   address: string,
 ): Promise<string | null> => {
-  const response = await rawCalibratedDirtyRead(`(${KADENA_NAMESPACE}.DALOS.UR_AccountKadena "${address}")`, { tier: "T5" });
+  const response = await pactRead(`(${KADENA_NAMESPACE}.DALOS.UR_AccountKadena "${address}")`, { tier: "T5" });
 
   if (!response || !response.result) {
     throw new Error("Failed to retrieve data from the transaction.");
@@ -146,7 +146,7 @@ export const getKadenaAccountOwner = async (
 };
 
 export const readKeyset = async (namespace: string, keysetName: string) => {
-  const response = await rawCalibratedDirtyRead(`(describe-keyset "${namespace}.${keysetName}")`, { tier: "T7" });
+  const response = await pactRead(`(describe-keyset "${namespace}.${keysetName}")`, { tier: "T7" });
 
   if (!response || !response.result) {
     throw new Error("Failed to retrieve data from the transaction.");
@@ -172,7 +172,7 @@ export async function resolveGuard(guardData: any): Promise<any> {
 export const getKadenaAccountGuard = async (
   address: string,
 ): Promise<IKeyset | null> => {
-  const response = await rawCalibratedDirtyRead(`(${KADENA_NAMESPACE}.DALOS.UR_AccountGuard "${address}")`, { tier: "T7" });
+  const response = await pactRead(`(${KADENA_NAMESPACE}.DALOS.UR_AccountGuard "${address}")`, { tier: "T7" });
   if (!response || !response.result) {
     throw new Error("Failed to retrieve data from the transaction.");
   }
@@ -200,7 +200,7 @@ export async function getOuronetKdaDetails(address: string): Promise<any> {
 // (namespace.DSP.URC_PrimordialPrices)
 
 export async function primordialPrices(): Promise<any> {
-  const response = await rawCalibratedDirtyRead(`(${KADENA_NAMESPACE}.DSP.URC_PrimordialPrices)`, { tier: "T6" });
+  const response = await pactRead(`(${KADENA_NAMESPACE}.DSP.URC_PrimordialPrices)`, { tier: "T6" });
 
   if (!response || !response.result) {
     throw new Error("Failed to retrieve data from the transaction.");
@@ -211,7 +211,7 @@ export async function primordialPrices(): Promise<any> {
 
 // DALOS.UR_Elite account
 export async function eliteAccount(address: string): Promise<any> {
-  const response = await rawCalibratedDirtyRead(`(${KADENA_NAMESPACE}.DALOS.UR_Elite "${address}")`, { tier: "T6" });
+  const response = await pactRead(`(${KADENA_NAMESPACE}.DALOS.UR_Elite "${address}")`, { tier: "T6" });
 
   if (!response || !response.result) {
     throw new Error("Failed to retrieve data from the transaction.");
@@ -227,7 +227,7 @@ export async function filterKeysForInfo(
 ): Promise<any> {
   const pactCode = `(${KADENA_NAMESPACE}.TFT.DPTF-DPMF-ATS|UR_FilterKeysForInfo "${address}" ${table} ${mode})`;
 
-  const response = await rawCalibratedDirtyRead(pactCode, { tier: "T3" });
+  const response = await pactRead(pactCode, { tier: "T3" });
 
   if (!response || !response.result) {
     throw new Error("Failed to retrieve data from the transaction.");
@@ -255,7 +255,7 @@ export async function filterKeysForInfo(
 
 // returns the price of the activation
 export async function usagePrice(tokenType: string = "standard"): Promise<any> {
-  const response = await rawCalibratedDirtyRead(`(${KADENA_NAMESPACE}.DALOS.UR_UsagePrice "${tokenType}")`, { tier: "T7" });
+  const response = await pactRead(`(${KADENA_NAMESPACE}.DALOS.UR_UsagePrice "${tokenType}")`, { tier: "T7" });
 
   if (!response || !response.result) {
     throw new Error("Failed to retrieve data from the transaction.");
@@ -270,7 +270,7 @@ export async function usagePrice(tokenType: string = "standard"): Promise<any> {
 // Legacy: getHeaderData removed — replaced by URC_0027_AccountSelectorMapper for header.
 // HeaderV3 is still used by Dashboard (IndexCardsGrid, OuroAccountCard, FirestarterSection).
 export async function getHeaderData(address: string = "", options?: { skipTempWatcher?: boolean }): Promise<any> {
-  const response = await rawCalibratedDirtyRead(`(${KADENA_NAMESPACE}.DPL-UR.URC_0001_HeaderV3 "${address}")`, { tier: "T6", skipTempWatcher: options?.skipTempWatcher });
+  const response = await pactRead(`(${KADENA_NAMESPACE}.DPL-UR.URC_0001_HeaderV3 "${address}")`, { tier: "T6", skipTempWatcher: options?.skipTempWatcher });
 
   if (!response || !response.result) {
     throw new Error("Failed to retrieve data from the transaction.");
@@ -294,7 +294,7 @@ export async function getPrimordials(
   const accountsList = codexAccounts.map((a) => `"${a}"`).join(" ");
   const pactCode = `(${KADENA_NAMESPACE}.DPL-UR.URC_0002_Primordials "${currentAccount}" [${accountsList}])`;
 
-  const response = await rawCalibratedDirtyRead(pactCode, { tier: "T5", skipTempWatcher: options?.skipTempWatcher });
+  const response = await pactRead(pactCode, { tier: "T5", skipTempWatcher: options?.skipTempWatcher });
 
   if (!response || !response.result) {
     return null; // network failure — caller should retry, not show ???
@@ -1117,7 +1117,7 @@ export async function getSublimatPreview(
   try {
     const decimalAmount = formatDecimalForPact(ouroAmount);
     
-    const response = await rawCalibratedDirtyRead(`(${KADENA_NAMESPACE}.OUROBOROS.URC_Sublimate (at 0 (${KADENA_NAMESPACE}.U|ATS.UC_PromilleSplit 10.0 ${decimalAmount} 24)))`, { tier: "T2" });
+    const response = await pactRead(`(${KADENA_NAMESPACE}.OUROBOROS.URC_Sublimate (at 0 (${KADENA_NAMESPACE}.U|ATS.UC_PromilleSplit 10.0 ${decimalAmount} 24)))`, { tier: "T2" });
 
     if (!response || !response.result || response.result.status === "failure") {
       return null;
@@ -1142,7 +1142,7 @@ export async function getCompressPreview(
   try {
     const decimalAmount = formatDecimalForPact(ignisAmount);
     
-    const response = await rawCalibratedDirtyRead(`(at 0 (${KADENA_NAMESPACE}.OUROBOROS.URC_Compress ${decimalAmount}))`, { tier: "T2" });
+    const response = await pactRead(`(at 0 (${KADENA_NAMESPACE}.OUROBOROS.URC_Compress ${decimalAmount}))`, { tier: "T2" });
 
     if (!response || !response.result || response.result.status === "failure") {
       return null;
@@ -1268,7 +1268,7 @@ export async function getTotalMBCost(sparks: number): Promise<string | null> {
   try {
     const integerSparks = Math.floor(sparks);
     
-    const response = await rawCalibratedDirtyRead(`(${KADENA_NAMESPACE}.MB.URC_TotalMBCost ${integerSparks})`, { tier: "T5" });
+    const response = await pactRead(`(${KADENA_NAMESPACE}.MB.URC_TotalMBCost ${integerSparks})`, { tier: "T5" });
 
     if (!response || !response.result || response.result.status === "failure") {
       return null;
@@ -1419,7 +1419,7 @@ export async function getMaxBuyMovieBooster(
   native: boolean
 ): Promise<number> {
   try {
-    const response = await rawCalibratedDirtyRead(`(${KADENA_NAMESPACE}.MB.URC_GetMaxBuy "${account}" ${native})`, { tier: "T5" });
+    const response = await pactRead(`(${KADENA_NAMESPACE}.MB.URC_GetMaxBuy "${account}" ${native})`, { tier: "T5" });
 
     if (!response || !response.result || response.result.status === "failure") {
       return 0;
@@ -1436,7 +1436,7 @@ export async function getMaxBuyMovieBooster(
 
 export async function getSparksBalance(account: string): Promise<any> {
   try {
-    const response = await rawCalibratedDirtyRead(`(${KADENA_NAMESPACE}.MB.UR_Sparks "${account}")`, { tier: "T5" });
+    const response = await pactRead(`(${KADENA_NAMESPACE}.MB.UR_Sparks "${account}")`, { tier: "T5" });
 
     if (!response || !response.result || response.result.status === "failure") {
       return null;
@@ -1552,7 +1552,7 @@ export async function getCoilPreview(
   try {
     const decimalAmount = formatDecimalForPact(ouroAmount);
     
-    const response = await rawCalibratedDirtyRead(`(${KADENA_NAMESPACE}.INFO-ONE.ATS|INFO_Coil "preview" "preview" "Auryndex-O136CBn22ncY" "OURO-8Nh-JO8JO4F5" ${decimalAmount})`, { tier: "T2" });
+    const response = await pactRead(`(${KADENA_NAMESPACE}.INFO-ONE.ATS|INFO_Coil "preview" "preview" "Auryndex-O136CBn22ncY" "OURO-8Nh-JO8JO4F5" ${decimalAmount})`, { tier: "T2" });
 
     if (!response || !response.result || response.result.status === "failure") {
       console.log("Coil preview failed:", response?.result);
@@ -1806,7 +1806,7 @@ export const IGNIS_TOKEN_ID = TOKEN_ID_IGNIS;
 export async function getIgnisBalance(account: string): Promise<string> {
   try {
     const pactCode = `(${KADENA_NAMESPACE}.DPTF.UR_AccountSupply "${IGNIS_TOKEN_ID}" "${account}")`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T5" });
+    const response = await pactRead(pactCode, { tier: "T5" });
 
     if (response?.result?.status === "success") {
       return String(mayComeWithDeimal((response.result as any).data));
@@ -1824,7 +1824,7 @@ export async function getIgnisBalance(account: string): Promise<string> {
 export async function getAccountTokenSupply(tokenId: string, account: string): Promise<string> {
   try {
     const pactCode = `(${KADENA_NAMESPACE}.DPTF.UR_AccountSupply "${tokenId}" "${account}")`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T5" });
+    const response = await pactRead(pactCode, { tier: "T5" });
 
     if (response?.result?.status === "success") {
       return String(mayComeWithDeimal((response.result as any).data));
@@ -1841,7 +1841,7 @@ export async function getAccountTokenSupply(tokenId: string, account: string): P
 export async function getOuroDispoCapacity(account: string): Promise<string> {
   try {
     const pactCode = `(${KADENA_NAMESPACE}.DALOS.UR_DISPOSupply "${account}")`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T5" });
+    const response = await pactRead(pactCode, { tier: "T5" });
 
     if (response?.result?.status === "success") {
       return String(mayComeWithDeimal((response.result as any).data));
@@ -1859,7 +1859,7 @@ export async function getOuroDispoCapacity(account: string): Promise<string> {
 export async function getVirtualOuro(account: string): Promise<string> {
   try {
     const pactCode = `(${KADENA_NAMESPACE}.TFT.URC_VirtualOuro "${account}")`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T5" });
+    const response = await pactRead(pactCode, { tier: "T5" });
     if (response?.result?.status === "success") {
       return String(mayComeWithDeimal((response.result as any).data));
     }
@@ -1879,7 +1879,7 @@ export async function getRotateKadenaInfo(
 ): Promise<any | null> {
   try {
     const pactCode = `(${KADENA_NAMESPACE}.INFO-ZERO.DALOS-INFO|URC_RotateKadena "${patron}" "${account}")`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T3" });
+    const response = await pactRead(pactCode, { tier: "T3" });
 
     if (response?.result?.status === "success") {
       return (response.result as any).data;
@@ -2015,7 +2015,7 @@ export async function rotateKadenaPaymentKey(
 export async function getStoaPriceUSD(options?: { skipTempWatcher?: boolean }): Promise<number> {
   try {
     const pactCode = `(${KADENA_NAMESPACE}.U|CT.UR|KDA-PID)`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T6", skipTempWatcher: options?.skipTempWatcher });
+    const response = await pactRead(pactCode, { tier: "T6", skipTempWatcher: options?.skipTempWatcher });
 
     if (response?.result?.status === "success") {
       return Number(mayComeWithDeimal((response.result as any).data)) || 1.0;
@@ -2033,7 +2033,7 @@ export async function getStoaPriceUSD(options?: { skipTempWatcher?: boolean }): 
 export async function getUnwrapStoaTarget(unwrapper: string): Promise<string | null> {
   try {
     const pactCode = `(${KADENA_NAMESPACE}.DALOS.UR_AccountKadena "${unwrapper}")`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T5" });
+    const response = await pactRead(pactCode, { tier: "T5" });
     if (response?.result?.status === "success") {
       return String((response.result as any).data);
     }
@@ -2052,7 +2052,7 @@ export async function getUnwrapStoaTarget(unwrapper: string): Promise<string | n
 export async function checkCoinAccountExists(address: string): Promise<boolean | null> {
   try {
     const pactCode = `(try false (coin.get-balance "${address}"))`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T3" });
+    const response = await pactRead(pactCode, { tier: "T3" });
     const data = (response?.result as any)?.data;
     if (data === false || data === "false") return false;
     if (typeof data === "number" || (data && typeof data === "object" && "decimal" in data)) return true;
@@ -2075,7 +2075,7 @@ export async function getDPTFIssueInfo(
   try {
     const tokenList = tokens.map(t => `"${t}"`).join(" ");
     const pactCode = `(${KADENA_NAMESPACE}.INFO-ONE.DPTF|INFO_Issue "${patron}" "${resident}" [${tokenList}])`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T2" });
+    const response = await pactRead(pactCode, { tier: "T2" });
     if (response?.result?.status === "success") return (response.result as any).data;
     return null;
   } catch { return null; }
@@ -2089,7 +2089,7 @@ export async function getSublimateInfo(
   try {
     const decimalAmount = formatDecimalForPact(amount);
     const pactCode = `(${KADENA_NAMESPACE}.INFO-ONE.ORBR|INFO_Sublimate "${patron}" "${resident}" ${decimalAmount})`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T2" });
+    const response = await pactRead(pactCode, { tier: "T2" });
     if (response?.result?.status === "success") return (response.result as any).data;
     return null;
   } catch { return null; }
@@ -2102,7 +2102,7 @@ export async function getCompressInfo(
   try {
     const decimalAmount = formatDecimalForPact(amount);
     const pactCode = `(${KADENA_NAMESPACE}.INFO-ONE.ORBR|INFO_Compress "${client}" ${decimalAmount})`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T2" });
+    const response = await pactRead(pactCode, { tier: "T2" });
     if (response?.result?.status === "success") return (response.result as any).data;
     return null;
   } catch { return null; }
@@ -2116,7 +2116,7 @@ export async function getUnwrapStoaInfo(
   try {
     const decimalAmount = formatDecimalForPact(amount);
     const pactCode = `(${KADENA_NAMESPACE}.INFO-ONE.LIQUID|INFO_UnwrapStoa "${patron}" "${unwrapper}" ${decimalAmount})`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T2" });
+    const response = await pactRead(pactCode, { tier: "T2" });
     if (response?.result?.status === "success") {
       return (response.result as any).data;
     }
@@ -2251,7 +2251,7 @@ export async function executeUnwrapStoa(params: UnwrapStoaParams): Promise<any> 
 export async function getDPTFMinMove(tokenId: string): Promise<number> {
   try {
     const pactCode = `(${KADENA_NAMESPACE}.DPTF.UR_MinMove "${tokenId}")`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T7" });
+    const response = await pactRead(pactCode, { tier: "T7" });
     if (response?.result?.status === "success") {
       return parseFloat(String(mayComeWithDeimal((response.result as any).data))) || 0;
     }
@@ -2270,7 +2270,7 @@ export async function getDPTFMinMove(tokenId: string): Promise<number> {
 export async function checkUrStoaAccountExists(address: string): Promise<boolean | null> {
   try {
     const pactCode = `(if (= (typeof (try false (coin.UR_UR|Balance "${address}"))) "bool") false true)`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T3" });
+    const response = await pactRead(pactCode, { tier: "T3" });
     const data = (response?.result as any)?.data;
     if (data === true) return true;
     if (data === false) return false;
@@ -2293,7 +2293,7 @@ export async function getUnwrapUrStoaInfo(
   try {
     const decimalAmount = formatDecimalForPact(amount);
     const pactCode = `(${KADENA_NAMESPACE}.INFO-ONE.LIQUID|INFO_UnwrapUrStoa "${patron}" "${wrapper}" ${decimalAmount})`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T2" });
+    const response = await pactRead(pactCode, { tier: "T2" });
     if (response?.result?.status === "success") {
       return (response.result as any).data;
     }

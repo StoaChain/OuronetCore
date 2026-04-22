@@ -20,7 +20,7 @@ interface IKadenaKeypair {
   password?: string;
 }
 import { Pact, createClient } from "@kadena/client";
-import { rawCalibratedDirtyRead } from "../reads";
+import { pactRead } from "../reads";
 import { universalSignTransaction, fromKeypair } from "../signing";
 
 /**
@@ -81,7 +81,7 @@ export async function getCoilPreviewGeneric(
     
     const executionString = `(${KADENA_NAMESPACE}.INFO-ONE.ATS|INFO_Coil "preview" "preview" "${config.atsPair}" "${config.sourceToken}" ${decimalAmount})`;
     
-    const response = await rawCalibratedDirtyRead(executionString, { tier: "T2" });
+    const response = await pactRead(executionString, { tier: "T2" });
     
     if (!response?.result?.status || response.result.status !== "success") {
       throw new Error("Failed to get coil preview");

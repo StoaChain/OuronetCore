@@ -8,7 +8,7 @@ import {
   PACT_URL, STOA_AUTONOMIC_OURONETGASSTATION,
 } from "../constants";
 import { Pact, createClient } from "@kadena/client";
-import { rawCalibratedDirtyRead } from "../reads";
+import { pactRead } from "../reads";
 import { universalSignTransaction, fromKeypair } from "../signing";
 import { calculateAutoGasLimit } from "../gas";
 import { createSimulationError, logDetailedError } from "../errors";
@@ -71,7 +71,7 @@ export async function getDeployStandardAccountInfoOnly(
 ): Promise<any | null> {
   try {
     const pactCode = `(${KADENA_NAMESPACE}.INFO-ZERO.DALOS-INFO|URC_DeployStandardAccount "${account}")`;
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T5" });
+    const response = await pactRead(pactCode, { tier: "T5" });
     if (response?.result?.status === "success") return (response.result as any).data;
     return null;
   } catch {
@@ -90,7 +90,7 @@ export async function getDeployStandardAccountInfo(
       `)` +
       `{ "info": info, "receivers": receivers })`;
 
-    const response = await rawCalibratedDirtyRead(pactCode, { tier: "T5" });
+    const response = await pactRead(pactCode, { tier: "T5" });
 
     if (response?.result?.status === "success") {
       const data = (response.result as any).data;
