@@ -1175,8 +1175,6 @@ export async function transferToken(
   kadenaAccount: IKadenaKeypair, // The kadena account (payer)
   guardAccount: IKadenaKeypair // The guard account from the Ouro account
 ) {
-  const keysetName = `ks`;
-  
   // Ensure amount is formatted as decimal
   const decimalAmount = formatDecimalForPact(transferAmount);
   

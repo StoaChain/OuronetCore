@@ -343,7 +343,6 @@ export async function executeNativeUrStoaTransfer(params: ExecuteNativeUrStoaPar
     );
 
     // Rebuild with only valid guard keys
-    const origGuardKeys = senderGuardKeys;
     (params as any)._filteredGuardKeys = validGuardKeys;
 
     const rebuildTransaction = (gasLimitOverride?: number) => {

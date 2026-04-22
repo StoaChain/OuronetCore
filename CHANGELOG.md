@@ -2,6 +2,22 @@
 
 All notable changes to `@stoachain/ouronet-core`.
 
+## 0.9.1 — 2026-04-22
+
+**Phase 3b cleanup.** Deletes 15 now-unused `executeX` helpers from `interactions/wrapFunctions.ts` and re-tightens `tsconfig.json` (`noUnusedLocals` + `noUnusedParameters` back on, were relaxed during the 3a/3b scaffolding).
+
+### Removed
+
+- `executeFirestarter`, `executeSublimate`, `executeCompress`, `executeTransferToken`, `executeCoil`, `executeCurl`, `executeBrumate`, `executeConstrict`, `executeColdRecovery`, `executeDirectRecovery`, `executeCull`, `buildNativeTransferTx`, `executeAwake`, `executeSlumber`, `executeClearDispo` — every last CFM modal in OuronetUI (v0.29.7c) moved to `strategy.execute()`, so these direct-path helpers have no remaining callers. Kept: `executeWrapStoa` + `executeWrapUrStoa` (still used by the two Wrap* modals, which aren't CFM modals).
+
+### Changed
+
+- `tsconfig.json`: `noUnusedLocals: true`, `noUnusedParameters: true` — both were off during 3a/3b to let scaffolding compile with in-flight unused symbols. Back on, with a handful of leftover unused imports (`NATIVE_TOKEN_VAULT`, `IKeyset`, a couple of dev-local variables) cleaned up.
+
+### Migration
+
+Consumers that still imported these helpers will fail to resolve — if you're one of those, switch to `CodexSigningStrategy` via `new CodexSigningStrategy(resolver, client)` + `strategy.execute({...})` (see codexStrategy.ts docstring).
+
 ## 0.9.0 — 2026-04-22
 
 **Phase 3b.2 Wave 4 support.** Small SigningStrategy API addition — adds `extraSigners?: IKadenaKeypair[]` to `execute()` so flows with more than two signer roles (like Firestarter, which needs GAS_PAYER + payment-key with `coin.TRANSFER` cap + account guards) can plug in. No breaking change: existing consumers pass nothing and behave exactly as before.

@@ -6,7 +6,6 @@ import {
   KADENA_NETWORK,
   PACT_URL,
 } from "../constants";
-import { IKeyset } from "../guard";
 import { Pact, createClient } from "@kadena/client";
 import { pactRead } from "../reads";
 import { universalSignTransaction, fromKeypair } from "../signing";

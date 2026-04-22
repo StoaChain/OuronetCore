@@ -1,7 +1,7 @@
 import { calculateAutoGasLimit } from "../gas";
 import {
   KADENA_CHAIN_ID,
-  KADENA_NAMESPACE, GAS_STATION, NATIVE_TOKEN_VAULT,
+  KADENA_NAMESPACE, GAS_STATION,
   KADENA_NETWORK,
   PACT_URL,
 } from "../constants";
