@@ -14,3 +14,4 @@
 export * from "./primitives";
 export * from "./universalSign";
 export * from "./types";
+export * from "./codexStrategy";

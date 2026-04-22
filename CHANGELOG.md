@@ -2,6 +2,33 @@
 
 All notable changes to `@stoachain/ouronet-core`.
 
+## 0.7.0 — 2026-04-22
+
+**Phase 3b.1 of the OuronetUI → OuronetCore extraction.** Ships `CodexSigningStrategy` — the first real `SigningStrategy` implementation. The 23 CFM modals in OuronetUI can now delete their ~43-line `handleExecute` A-F pipeline in favor of a ~30-line `strategy.execute({...})` call. Done one modal at a time with smoke-testing between each; `CompressCFMModal` is the first consumer (see OuronetUI v0.29.6).
+
+### Added
+
+- **`@stoachain/ouronet-core/signing/CodexSigningStrategy`** — implements the full pipeline:
+  1. Get codex pub set from resolver
+  2. `analyzeGuard` each guard (with any caller-provided resolvedForeignKeys)
+  3. Resolve keypairs via `resolver.getKeyPairByPublicKey` (or synthesize inline for resolved-foreign keys)
+  4. `selectCapsSigningKey` for GAS_PAYER avoiding pure-signer overlap
+  5. Build via caller closure (given the resolved pubkeys)
+  6. `client.dirtyRead` to simulate → fail-fast
+  7. `calculateAutoGasLimit` on measured gas
+  8. Rebuild with real gas
+  9. `universalSignTransaction` with deduped keypairs
+  10. `client.submit` → return `{requestKey, raw}`
+- `.execute(...)` for the full pipeline; `.sign(...)` as a lower-level primitive for callers that own their simulation flow.
+
+### Changed
+
+- `SigningStrategy.execute`'s `build` closure signature widened: now receives `{gasLimit, capsKeyPub, guardPubs}` instead of just `gasLimit`. Necessary because Pact.builder's `addSigner` calls need the pubkeys at simulation time (cap-requiring modules reject sims with missing capability signers).
+
+### Migration semantics
+
+Resolved-foreign-keys handling: when a guard-signer pubkey is in the caller's `resolvedForeignKeys` map (user pasted a raw priv via `ForeignKeySignModal` or equivalent), the strategy synthesizes `{publicKey: pub, privateKey, seedType: "foreign"}` inline rather than asking the resolver — the resolver never knew about it. Codex keys still go through the resolver which handles password prompts + HD derivation.
+
 ## 0.6.0 — 2026-04-22
 
 **Phase 3a of the OuronetUI → OuronetCore extraction.** Pure scaffolding release — introduces the signing abstractions Phase 3b will wire up and collapse the 23 CFM `handleExecute` duplicates against.

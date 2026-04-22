@@ -110,8 +110,19 @@ export interface SigningStrategy {
    *   8. client.submit → return the request key
    */
   execute(args: {
-    /** Build an unsigned tx given a gas limit. Called twice (sim + real). */
-    build: (gasLimit: number) => IUnsignedCommand;
+    /**
+     * Build an unsigned tx. Called twice (sim + real). Receives the pubkeys
+     * the strategy has already resolved — the caps (GAS_PAYER) pub, plus
+     * every guard-signer pub (deduplicated). The build closure wires these
+     * into the Pact.builder addSigner(...) calls so Pact.builder sees the
+     * full signer set at simulation time (cap-requiring modules reject
+     * sims that are missing capability signers).
+     */
+    build: (ctx: {
+      gasLimit: number;
+      capsKeyPub: string;
+      guardPubs: string[];
+    }) => IUnsignedCommand;
     /** Guards whose keys must pure-sign the tx (bare addSigner). */
     guards: IKeyset[];
     /** Optional payment-key pubkey used for GAS_PAYER capability. */
