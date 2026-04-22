@@ -14,6 +14,18 @@ import {
   publicKeyFromExtendedKey,
 } from "../signing/primitives";
 
+/**
+ * A Kadena keyset guard. The three standard predicates from Pact core plus
+ * any stoic-predicate string are all acceptable. `keysetRef` is present when
+ * the on-chain guard is a keyset-ref-guard (e.g. "ouronet-ns.dh_sc_dpdc-keyset")
+ * rather than an inline keyset.
+ */
+export interface IKeyset {
+  pred: "keys-all" | "keys-any" | "keys-2" | string;
+  keys: string[];
+  keysetRef?: string;
+}
+
 // ── Predicate tables ───────────────────────────────────────────────────────────
 
 const STOIC_FIXED: Record<string, number> = {

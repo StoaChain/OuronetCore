@@ -67,6 +67,65 @@ export const mayComeWithDeimal = (data: any): any => {
   return data;
 };
 
+// ─── EU locale number formatters ─────────────────────────────────────────────
+// Display-side counterparts — convert chain numbers to/from European locale
+// (dot thousands separator, comma decimal separator). Both sides of core-based
+// code (OuronetUI's display + HUB's admin output) format the same way.
+
+/**
+ * Parse a European-locale number string back to a float.
+ * "1.234,56" → 1234.56, "1.234" → 1234 (if no comma), "0,9" → 0.9.
+ * Falls back to parseFloat for non-EU strings.
+ */
+export function parseEU(s: string | null | undefined): number {
+  if (!s) return 0;
+  const trimmed = s.trim();
+  if (trimmed === "???" || trimmed === "N/A" || trimmed === "—" || trimmed === "") return 0;
+  if (trimmed.includes(",")) {
+    return parseFloat(trimmed.replace(/\./g, "").replace(",", ".")) || 0;
+  }
+  const dotParts = trimmed.split(".");
+  if (dotParts.length === 2 && dotParts[1].length === 3 && /^\d+$/.test(dotParts[1])) {
+    return parseFloat(trimmed.replace(/\./g, "")) || 0;
+  }
+  return parseFloat(trimmed) || 0;
+}
+
+/**
+ * Format a numeric string/number to European locale.
+ * "6081.3874" → "6.081,3874"   "42067.93$" → "42.067,93$"
+ * Returns "???" for null/undefined; passes "???", "N/A", "—", "" unchanged.
+ */
+export function formatEU(raw: string | number | null | undefined): string {
+  if (raw === null || raw === undefined) return "???";
+  const s = String(raw).trim();
+  if (s === "???" || s === "N/A" || s === "—" || s === "") return s;
+
+  const m = s.match(/^(\d+(?:\.\d+)?)((?:\s+\([^)]+\))*)\s*(\$|¢)?$/);
+  if (!m) return s;
+
+  const numStr = m[1];
+  const annotation = m[2] || "";
+  const suffix = m[3] || "";
+
+  const dotIdx = numStr.indexOf(".");
+  let intPart: string;
+  let decPart: string | undefined;
+
+  if (dotIdx >= 0) {
+    intPart = numStr.slice(0, dotIdx);
+    decPart = numStr.slice(dotIdx + 1);
+  } else {
+    intPart = numStr;
+    decPart = undefined;
+  }
+
+  intPart = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+  const formatted = decPart !== undefined ? `${intPart},${decPart}` : intPart;
+  return `${formatted}${annotation}${suffix ? " " + suffix : ""}`.trim();
+}
+
 /**
  * Normalize raw free-position-data rows from the chain.
  *

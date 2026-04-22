@@ -32,7 +32,19 @@ const READ_SIM_GAS_LIMIT = 10_000_000;
  */
 export async function rawCalibratedDirtyRead(
   pactCode: string,
-  options?: { pactUrl?: string; chainId?: ChainId | string },
+  options?: {
+    pactUrl?: string;
+    chainId?: ChainId | string;
+    /**
+     * Accepted and ignored. Source-compatibility shim for consumers that
+     * used to call OuronetUI's cache-aware `calibratedDirtyRead` (which
+     * carried tier tracking). The raw read has no cache, so the tier is
+     * meaningless here — the option exists so the migration doesn't touch
+     * 20+ call sites needlessly.
+     */
+    tier?: string;
+    skipTempWatcher?: boolean;
+  },
 ) {
   const pactUrl = options?.pactUrl ?? PACT_URL;
   const chainId = (options?.chainId ?? KADENA_CHAIN_ID) as ChainId;

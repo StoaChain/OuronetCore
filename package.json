@@ -1,6 +1,6 @@
 {
   "name": "@stoachain/ouronet-core",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Shared TypeScript core for the OuroNet ecosystem — StoaChain / Chainweb / Pact interactions, Codex signing, guard analysis, encryption. Consumed by OuronetUI and the AncientHolder HUB.",
   "type": "module",
   "main": "./dist/index.js",
@@ -12,12 +12,14 @@
     "./gas":          { "types": "./dist/gas/index.d.ts",          "import": "./dist/gas/index.js" },
     "./guard":        { "types": "./dist/guard/index.d.ts",        "import": "./dist/guard/index.js" },
     "./crypto":       { "types": "./dist/crypto/index.d.ts",       "import": "./dist/crypto/index.js" },
+    "./errors":       { "types": "./dist/errors/index.d.ts",       "import": "./dist/errors/index.js" },
     "./signing":      { "types": "./dist/signing/index.d.ts",      "import": "./dist/signing/index.js" },
     "./wallet":       { "types": "./dist/wallet/index.d.ts",       "import": "./dist/wallet/index.js" },
     "./codex":        { "types": "./dist/codex/index.d.ts",        "import": "./dist/codex/index.js" },
     "./reads":        { "types": "./dist/reads/index.d.ts",        "import": "./dist/reads/index.js" },
     "./pact":         { "types": "./dist/pact/index.d.ts",         "import": "./dist/pact/index.js" },
-    "./interactions": { "types": "./dist/interactions/index.d.ts", "import": "./dist/interactions/index.js" }
+    "./interactions":    { "types": "./dist/interactions/index.d.ts",   "import": "./dist/interactions/index.js" },
+    "./interactions/*":  { "types": "./dist/interactions/*.d.ts",       "import": "./dist/interactions/*.js" }
   },
   "files": ["dist"],
   "engines": { "node": ">=20" },
