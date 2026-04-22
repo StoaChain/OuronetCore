@@ -2,6 +2,26 @@
 
 All notable changes to `@stoachain/ouronet-core`.
 
+## 0.6.0 — 2026-04-22
+
+**Phase 3a of the OuronetUI → OuronetCore extraction.** Pure scaffolding release — introduces the signing abstractions Phase 3b will wire up and collapse the 23 CFM `handleExecute` duplicates against.
+
+### Added
+
+- **`@stoachain/ouronet-core/signing/types`** — three interfaces grounded in the research pass (`docs/EXTRACT_OURONET_CORE_PLAN.md §2.2` in the OuronetUI repo):
+  - **`IKadenaKeypair`** — canonical home for the keypair shape. Same structure ouroFunctions has been exporting since Phase 2b; this version is the authoritative one going forward. Both paths compile because the shape is identical.
+  - **`KeyResolver`** — the three-method contract (`listCodexPubs`, `getKeyPairByPublicKey`, optional `requestForeignKey`) each consumer implements against their own Codex backend. OuronetUI: `ReduxCodexResolver` (Redux + wallet-context). HUB: future `FileCodexResolver` (disk file + env/KMS passphrase). CLI: `readline`. Etc.
+  - **`PactClient`** — minimal `dirtyRead` + `submit` subset of `@kadena/client`'s `createClient` return. Strategies accept one so the URL isn't baked into core (browser needs the CF-worker proxy; server hits Stoa directly).
+  - **`SigningStrategy`** — the `execute(...)` + `sign(...)` pipeline interface. Still unimplemented in this release; `CodexSigningStrategy` lands in Phase 3b.
+
+### Changed
+
+Nothing — this is additive scaffolding. Every existing import path keeps working unchanged; every runtime behavior is identical to v0.5.0.
+
+### Tests
+
+Still 162 — the new interfaces are compile-time only and have no runtime until Phase 3b wires an implementation. On-chain acceptance for the whole signing surface runs at the end of 3b (9-item real-wallet matrix).
+
 ## 0.5.0 — 2026-04-22
 
 **Phase 2c of the OuronetUI → OuronetCore extraction.** HD keypair derivation + runtime wallet class move to core; `CodexStorageAdapter` interface defined so browser + server consumers each implement their own storage backend.
