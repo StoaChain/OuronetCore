@@ -53,8 +53,15 @@ export class CodexSigningStrategy implements SigningStrategy {
     guards: IKeyset[];
     paymentKey?: string | null;
     resolvedForeignKeys?: Record<string, string>;
+    extraSigners?: IKadenaKeypair[];
   }): Promise<{ requestKey: string; raw: any }> {
-    const { build, guards, paymentKey = null, resolvedForeignKeys = {} } = args;
+    const {
+      build,
+      guards,
+      paymentKey = null,
+      resolvedForeignKeys = {},
+      extraSigners = [],
+    } = args;
 
     // ── B. Codex pub set ─────────────────────────────────────────────
     const codexPubs = await this.resolver.listCodexPubs();
@@ -135,10 +142,12 @@ export class CodexSigningStrategy implements SigningStrategy {
     // Dedup all signers by pubkey (caps might overlap with a guard pub in
     // edge cases where selectCapsSigningKey fell through; we still safely
     // collapse duplicates before handing them to universalSignTransaction).
+    // extraSigners (e.g. Firestarter's paymentSignerKey with coin.TRANSFER
+    // cap) flow through the guard-keypair slot — sign() dedups by pub.
     const signed = await this.sign({
       tx,
       capsKey: capsKeypair,
-      guardKeypairs,
+      guardKeypairs: [...guardKeypairs, ...extraSigners],
     });
 
     const raw = await this.client.submit(signed);

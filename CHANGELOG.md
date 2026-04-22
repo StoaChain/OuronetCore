@@ -2,6 +2,14 @@
 
 All notable changes to `@stoachain/ouronet-core`.
 
+## 0.9.0 — 2026-04-22
+
+**Phase 3b.2 Wave 4 support.** Small SigningStrategy API addition — adds `extraSigners?: IKadenaKeypair[]` to `execute()` so flows with more than two signer roles (like Firestarter, which needs GAS_PAYER + payment-key with `coin.TRANSFER` cap + account guards) can plug in. No breaking change: existing consumers pass nothing and behave exactly as before.
+
+### Added
+
+- `SigningStrategy.execute({ extraSigners? })` — optional array of pre-resolved `IKadenaKeypair`s. The strategy folds them into the sign step alongside the guard keypairs (deduplicated by pubkey). Used by OuronetUI's `FirestarterCFMModal` to supply the payment-key signer whose `coin.TRANSFER` cap the build closure wires explicitly via `addSigner`.
+
 ## 0.8.0 — 2026-04-22
 
 **Phase 3b.2 Wave 1 support.** Pure addition — exposes `safeCreationTime()` from `@stoachain/ouronet-core/pact` so CFM modals in OuronetUI can mint `creationTime` values the same way every core `execute*` helper already does (Pact `setMeta`'s creationTime − 30s to sidestep node clock-skew rejections). No behavior changes to existing exports.

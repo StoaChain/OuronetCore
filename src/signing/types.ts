@@ -129,6 +129,16 @@ export interface SigningStrategy {
     paymentKey?: string | null;
     /** Browser-side: foreign keys pre-resolved via a modal. Server: empty. */
     resolvedForeignKeys?: Record<string, string>;
+    /**
+     * Optional extra signers beyond guards + caps. The strategy includes
+     * these pre-resolved keypairs in the sign step (deduplicated by pub).
+     * Use case: flows like Firestarter where a separate payment-key pub
+     * carries its own per-signer capability (e.g. coin.TRANSFER) in the
+     * build closure. The build closure itself wires the addSigner call
+     * by closing over the keypair — the strategy just makes sure the
+     * signing step can find a priv for every sig slot in the tx.
+     */
+    extraSigners?: IKadenaKeypair[];
   }): Promise<{ requestKey: string; raw: any }>;
 
   /**
