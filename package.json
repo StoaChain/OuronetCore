@@ -1,6 +1,6 @@
 {
   "name": "@stoachain/ouronet-core",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Shared TypeScript core for the OuroNet ecosystem — StoaChain / Chainweb / Pact interactions, Codex signing, guard analysis, encryption. Consumed by OuronetUI and the AncientHolder HUB.",
   "type": "module",
   "main": "./dist/index.js",
@@ -16,6 +16,7 @@
     "./wallet":       { "types": "./dist/wallet/index.d.ts",       "import": "./dist/wallet/index.js" },
     "./codex":        { "types": "./dist/codex/index.d.ts",        "import": "./dist/codex/index.js" },
     "./reads":        { "types": "./dist/reads/index.d.ts",        "import": "./dist/reads/index.js" },
+    "./pact":         { "types": "./dist/pact/index.d.ts",         "import": "./dist/pact/index.js" },
     "./interactions": { "types": "./dist/interactions/index.d.ts", "import": "./dist/interactions/index.js" }
   },
   "files": ["dist"],

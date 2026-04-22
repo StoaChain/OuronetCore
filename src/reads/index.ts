@@ -1,5 +1,6 @@
-// @stoachain/ouronet-core/reads — rawCalibratedDirtyRead (pure Pact read
-// with node failover; no cache).
-// The cache-aware wrapper stays in OuronetUI — tied to React lifecycle.
-// Populated in Phase 2a when src/kadena/calibratedRead.ts splits.
-export {};
+// @stoachain/ouronet-core/reads
+//
+// Read helpers for on-chain data. Raw, uncached — consumer layers add any
+// caching / tier tracking they need.
+
+export * from "./rawCalibratedRead";

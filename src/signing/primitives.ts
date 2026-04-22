@@ -30,6 +30,18 @@ function bytesToNumberLE(bytes: Uint8Array): bigint {
 }
 
 /**
+ * Encode a Uint8Array as a lowercase hex string (two chars per byte, no
+ * separators, no `0x` prefix). Inverse of hexToBytes. Used wherever a raw
+ * byte buffer crosses a string boundary — wallet-derived private keys,
+ * signed-tx hashes that get hand-assembled, etc.
+ */
+export function toHexString(byteArray: Uint8Array): string {
+  return Array.from(byteArray, (byte) =>
+    ("0" + (byte & 0xff).toString(16)).slice(-2),
+  ).join("");
+}
+
+/**
  * Derive public key from a 64-char standard Ed25519 seed (pact -g / Koala).
  */
 export function publicKeyFromPrivateKey(privateKeyHex: string): string {
