@@ -2,6 +2,20 @@
 
 All notable changes to `@stoachain/ouronet-core`.
 
+## 1.0.0 — 2026-04-22
+
+**Extraction complete.** Symbolic bump to 1.0.0 to mark the end of the OuronetUI → OuronetCore migration. Every piece of blockchain logic that used to live in OuronetUI (Pact builders, signing pipeline, encryption, guard analysis, gas calibration, codex codec, seed-type migration) now lives here. OuronetUI is a pure consumer. No API changes from 0.11.0 — strict semver would call this 0.11.1, but the bump signals "this is the public surface we commit to and will semver against going forward."
+
+### Documentation
+
+- `README.md` — rewritten. Status now "extraction complete", not "skeleton only". Submodule table reflects current exports (including the 14 `buildXxxPactCode` builders added in 0.11.0). Cross-links to OuronetUI's TESTING_STRATEGY + CFM_BUILD_GUIDE. Documents the `npm link` local-dev flow and the tag-push publish workflow.
+
+### What 1.0.0 commits to
+
+- Public API: the 10 subpath exports listed in `package.json` (`/constants`, `/network`, `/gas`, `/guard`, `/crypto`, `/signing`, `/codex`, `/reads`, `/pact`, `/interactions`). Removing or renaming anything exported at the top level of any of these = major version bump.
+- Codex export format: `"version": "1.2"` is stable — existing `OuronetCodex_*.json` files users have on disk must stay importable forever.
+- Signing strategy contract: `CodexSigningStrategy.execute({ build, guards, paymentKey?, resolvedForeignKeys?, extraSigners? })` is the stable shape.
+
 ## 0.11.0 — 2026-04-22
 
 **Tier 1 testing pass.** Extracts the per-modal Pact-code builders into a pure module and adds 75 tests across 4 new/extended test files. All 268 tests pass (was 193). See `OuronetUI/docs/TESTING_STRATEGY.md` for the testing strategy rationale.
