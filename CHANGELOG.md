@@ -2,6 +2,35 @@
 
 All notable changes to `@stoachain/ouronet-core`.
 
+## 1.1.0 — 2026-04-22
+
+**Tier 2 testing pass.** 18 new tests across 2 files (one extension + one new). 286 total pass (was 268). No source changes — tests exercise existing code paths that weren't previously covered. See `OuronetUI/docs/TESTING_STRATEGY.md` §Tier 2.
+
+### Added
+
+- **`tests/strategy.test.ts` extended** — 6 new edge-case tests:
+  - Foreign key synthesis via `resolvedForeignKeys` (ForeignKeySignModal flow)
+  - Tx with unsigned slot for a foreign pub when no resolvedForeignKeys supplied — documents that strategy doesn't police guard satisfaction; chain-level rejection is the user-visible failure mode
+  - `resolver.requestForeignKey` invocation path + error propagation
+  - Impossible case: only codex key is also payment key AND guard key → throw
+  - Resolver throw (HD derivation fail, password cancelled) propagates up execute()
+  - Multi-guard: 2-of-3 patron + 1-of-1 resident → caps correctly picks the one free codex key
+  - Keyset-ref guards flow through without surprise
+- **`tests/encryption-upgrade.test.ts`** NEW — 12 tests for the V1 → V2 upgrade-on-unlock flow:
+  - Happy path: V1 blob decrypts → re-encrypt with schemaVersion=1 → V2 blob → decrypts back to same plaintext
+  - Idempotent: re-running upgrade on a V2 blob leaves it V2
+  - schemaVersion-null/0 → V1 blob (fail-safe pre-upgrade behaviour)
+  - Mixed-codex state: some V1 + some V2 blobs all decrypt via `smartDecrypt`
+  - Wrong-password rejection for both V1 and V2 (no silent V2-fallback slip)
+  - `isCodexUpgraded` ↔ `smartEncrypt` contract across null/0/1/2/99/garbage inputs
+  - Password-change-during-upgrade: new password decrypts, old password fails
+  - `decryptStringV2` V1-fallback path (belt-and-suspenders)
+  - Full-codex simulation: 5 entries (wallet + account + pure keypair fields), all round-trip through the upgrade pipeline
+
+### No changes
+
+- Source. These are pure test additions.
+
 ## 1.0.0 — 2026-04-22
 
 **Extraction complete.** Symbolic bump to 1.0.0 to mark the end of the OuronetUI → OuronetCore migration. Every piece of blockchain logic that used to live in OuronetUI (Pact builders, signing pipeline, encryption, guard analysis, gas calibration, codex codec, seed-type migration) now lives here. OuronetUI is a pure consumer. No API changes from 0.11.0 — strict semver would call this 0.11.1, but the bump signals "this is the public surface we commit to and will semver against going forward."
