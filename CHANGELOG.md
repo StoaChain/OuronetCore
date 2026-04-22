@@ -2,6 +2,25 @@
 
 All notable changes to `@stoachain/ouronet-core`.
 
+## 0.10.0 — 2026-04-22
+
+**Phase 4 of the OuronetUI → OuronetCore extraction.** Moves encryption primitives + introduces portable Codex types + the backup-JSON codec. Pure additions — no existing export changes.
+
+### Added
+
+- **`@stoachain/ouronet-core/crypto`** — migrated wholesale from OuronetUI's `src/lib/encryptor.ts` + `src/lib/encryptorV2.ts`. Both V1 (PBKDF2-SHA256 10k) and V2 (PBKDF2-SHA512 600k) primitives, plus `smartDecrypt` auto-format-detection + `smartEncrypt` (now pure — takes `schemaVersion: string | null` as an argument instead of reading `localStorage.codex_schema_version`). Works in browser + Node.js.
+- **`@stoachain/ouronet-core/codex`** — portable Codex shape + codec:
+  - `PlaintextCodex<KS, OA, PK, AB, UI>` — generic in-memory shape. Default type params are `unknown`; consumers (OuronetUI, future HUB) plug in their own wallet/account/keypair types. Fields: kadenaWallets, ouronetWallets, addressBook, pureKeypairs, uiSettings, schemaVersion, lastUpdatedAt, lastUpdatedDevice.
+  - `CodexExportV1_2<KS, OA, AB, UI>` — the `"version": "1.2"` backup-JSON shape OuronetUI has been writing since early 2025. Intentionally preserved byte-for-byte: existing `OuronetCodex_*.json` files stay valid.
+  - `buildCodexExport(codex)` + `serializeCodex(codex)` (stringify with 2-space indent) + `deserializeCodex(json)` (throws on version mismatch — fail-fast before mis-decoding a hypothetical future V2).
+  - `migrateSeedType(rawType)` + `SeedType`/`RawSeedType` types — the historical `legacy → chainweaver`, `new → koala` mapping. Was inlined in OuronetUI's WalletStorage; lives here now so HUB doesn't rediscover it. Idempotent.
+- 31 new encryption tests moved to `tests/encryption.test.ts` (from OuronetUI's `src/lib/__tests__/encryption.test.ts`). Covers V1/V2 round-trips, wrong-password, envelope shape, smartDecrypt mixed-format, isCodexUpgraded predicate, smartEncrypt schema-version dispatch. **193 tests total pass** (was 162).
+
+### Migration notes
+
+- `smartEncrypt` API changed: now `smartEncrypt(plaintext, password, schemaVersion)` instead of the browser-only `smartEncrypt(plaintext, password)`. OuronetUI keeps a tiny `src/lib/smart-encrypt-browser.ts` wrapper that reads `localStorage.codex_schema_version` and delegates here — no behaviour change for UI consumers.
+- Existing codex blobs decrypt identically — no on-disk format change.
+
 ## 0.9.1 — 2026-04-22
 
 **Phase 3b cleanup.** Deletes 15 now-unused `executeX` helpers from `interactions/wrapFunctions.ts` and re-tightens `tsconfig.json` (`noUnusedLocals` + `noUnusedParameters` back on, were relaxed during the 3a/3b scaffolding).
