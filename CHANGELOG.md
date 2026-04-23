@@ -2,6 +2,10 @@
 
 All notable changes to `@stoachain/ouronet-core`.
 
+## 1.2.2 — 2026-04-23
+
+**Secret name fix.** v1.2.1 still failed ENEEDAUTH because the workflow referenced `secrets.NPM_TOKEN` but the actual GitHub repo secret is named `NPMPUSHER`. Updated the workflow to use the correct secret name. The secret itself (content-wise) is correct — just a name mismatch between what the workflow expected and what was registered. No source changes.
+
 ## 1.2.1 — 2026-04-23
 
 **Publish fix.** v1.2.0's publish workflow failed with `ENEEDAUTH` because `setup-node`'s scope-based `.npmrc` generation didn't reliably propagate `NODE_AUTH_TOKEN` to `npm publish`. Rewrote the workflow to write `.npmrc` itself with an explicit `_authToken` line, plus added an `npm whoami` verify step so future auth failures surface earlier. Pure infrastructure fix — source code identical to v1.2.0.
