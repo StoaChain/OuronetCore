@@ -50,12 +50,14 @@ const valid = primitive!.verify!(sig, 'approve tx 123', account.keyPair.publ);
 - **Total: 295/295 tests pass in ~14 s**.
 - Build clean (`tsc -p tsconfig.build.json`).
 
-### Temporary state (cleared in v1.3.1)
+### Dependency resolution
 
-`@stoachain/dalos-crypto` is currently referenced as `file:../DALOS_Crypto/ts` — a local-dev placeholder. Switches back to the semver-range `^1.0.0` once:
-1. The `NPMPUSHER` secret is configured on the `StoaChain/DALOS_Crypto` repository (GitHub Settings → Secrets and variables → Actions).
-2. The `ts-v1.0.0` tag re-triggers the publish workflow successfully.
-3. This package's `package.json` is updated + tagged as `v1.3.1`.
+`@stoachain/dalos-crypto@^1.0.0` is resolved from the public npmjs registry
+(`https://registry.npmjs.org/@stoachain/dalos-crypto/-/dalos-crypto-1.0.0.tgz`).
+The earlier `file:../DALOS_Crypto/ts` placeholder was cleared in this same
+version — the published tarball now ships with a registry-ranged dep, so
+downstream consumers (OuronetUI, AncientHoldings hub) don't need a sibling
+checkout to install.
 
 ### Migration notes for consumers
 

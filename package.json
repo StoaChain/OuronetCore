@@ -33,7 +33,7 @@
     "clean": "rimraf dist"
   },
   "dependencies": {
-    "@stoachain/dalos-crypto": "file:../DALOS_Crypto/ts"
+    "@stoachain/dalos-crypto": "^1.0.0"
   },
   "peerDependencies": {
     "@kadena/client":              "^1.17.0",
