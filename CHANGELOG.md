@@ -2,6 +2,67 @@
 
 All notable changes to `@stoachain/ouronet-core`.
 
+## 1.3.0 — 2026-04-23
+
+**DALOS Cryptography integration.** OuronetCore now exposes the full DALOS cryptographic stack through a new `./dalos` subpath. Consumers (OuronetUI, AncientHoldings hub, CLI tools) can mint Ouronet accounts locally, sign with Schnorr v2, and verify addresses via a single, stable API without depending on the remote `go.ouronetwork.io/api/generate` service.
+
+### Added
+
+- **Dependency**: `@stoachain/dalos-crypto@^1.0.0` (byte-identical TypeScript port of the Go DALOS reference — all 85 Go test vectors reproduced byte-for-byte, all 20 Schnorr signatures match).
+- **Subpath**: `@stoachain/ouronet-core/dalos` — re-exports the full `CryptographicPrimitive` + `CryptographicRegistry` surface plus a `createOuronetAccount` convenience helper.
+- **`src/dalos/index.ts`** — re-exports:
+  - Types: `KeyPair`, `PrivateKeyForms`, `FullKey`, `PrimitiveMetadata`, `CryptographicPrimitive`, `DalosGenesisPrimitive`, `Bitmap`
+  - Values: `DalosGenesis`, `CryptographicRegistry`, `createDefaultRegistry`, `isDalosGenesisPrimitive`, bitmap utilities
+- **`src/dalos/account.ts`** — `createOuronetAccount(registry, options)`:
+  - Discriminated-union `CreateAccountOptions` covering all 6 input modes (`random`, `bitString`, `integerBase10`, `integerBase49`, `seedWords`, `bitmap`)
+  - Dispatches to the right primitive method
+  - Returns a fully-materialised `FullKey` (keyPair + all 3 private-key forms + both Ѻ./Σ. addresses)
+  - Throws descriptive errors on unregistered primitives or unsupported modes
+- **`tests/dalos-integration.test.ts`** — 9 integration tests (all 6 modes + registry detect/sign/verify end-to-end + error paths).
+
+### Usage example
+
+```typescript
+import {
+  createDefaultRegistry,
+  createOuronetAccount,
+} from '@stoachain/ouronet-core/dalos';
+
+const registry = createDefaultRegistry();
+
+// Mint an account from seed words:
+const account = createOuronetAccount(registry, {
+  mode: 'seedWords',
+  data: ['hello', 'world', 'dalos', 'genesis'],
+});
+console.log(account.standardAddress); // Ѻ.xxxxx...
+
+// Sign + verify:
+const primitive = registry.detect(account.standardAddress);
+const sig = primitive!.sign!(account.keyPair, 'approve tx 123');
+const valid = primitive!.verify!(sig, 'approve tx 123', account.keyPair.publ);
+```
+
+### Verified
+
+- All existing **286 OuronetCore tests still pass** (no regressions).
+- **9 new integration tests all pass**.
+- **Total: 295/295 tests pass in ~14 s**.
+- Build clean (`tsc -p tsconfig.build.json`).
+
+### Temporary state (cleared in v1.3.1)
+
+`@stoachain/dalos-crypto` is currently referenced as `file:../DALOS_Crypto/ts` — a local-dev placeholder. Switches back to the semver-range `^1.0.0` once:
+1. The `NPMPUSHER` secret is configured on the `StoaChain/DALOS_Crypto` repository (GitHub Settings → Secrets and variables → Actions).
+2. The `ts-v1.0.0` tag re-triggers the publish workflow successfully.
+3. This package's `package.json` is updated + tagged as `v1.3.1`.
+
+### Migration notes for consumers
+
+This release is purely additive — no existing OuronetCore API changed. Consumers that don't import from `./dalos` see zero behavioural difference. The OuronetUI migration to the local-generation path lands separately as Phase 9 of the DALOS TypeScript port.
+
+---
+
 ## 1.2.2 — 2026-04-23
 
 **Secret name fix.** v1.2.1 still failed ENEEDAUTH because the workflow referenced `secrets.NPM_TOKEN` but the actual GitHub repo secret is named `NPMPUSHER`. Updated the workflow to use the correct secret name. The secret itself (content-wise) is correct — just a name mismatch between what the workflow expected and what was registered. No source changes.
