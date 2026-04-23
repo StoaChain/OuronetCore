@@ -2,6 +2,29 @@
 
 All notable changes to `@stoachain/ouronet-core`.
 
+## 1.2.0 — 2026-04-22
+
+**Registry switch: GitHub Packages → npmjs.org.** Pure distribution change, zero source code changes. Everything that made v1.1.0 work still works identically; consumers just pull from a different registry.
+
+### Changed
+
+- `.github/workflows/publish.yml` rewired to publish to `https://registry.npmjs.org` instead of `https://npm.pkg.github.com`. Uses the `NPM_TOKEN` repo secret (granular npmjs token, 90-day expiry, scoped to `@stoachain` read+write with bypass-2FA enabled for CI automation).
+- `package.json` `publishConfig` → `{ registry: https://registry.npmjs.org, access: public }`. Scoped packages default to "restricted" on npmjs.org; explicit `access: public` makes them installable anonymously.
+
+### Why the switch
+
+GitHub Packages for npm requires any consumer to authenticate with a GitHub PAT even for packages marked "public" at the package level — the StoaChain org doesn't have the legacy "allow anonymous access" toggle, so every install site (Ploi, local dev, team laptops, CI) needed `NPM_TOKEN` configured. npmjs.org is the standard public JS registry — `npm install @stoachain/ouronet-core` just works anywhere with zero auth setup. Switch has no tradeoff: the package is already public in source form on github.com/StoaChain/OuronetCore, so making it installable without friction is pure upside.
+
+### For consumers (OuronetUI, future HUB, team laptops)
+
+- Delete any `.npmrc` entries or `NPM_TOKEN` env vars that pointed at GitHub Packages.
+- Run `npm install` — everything resolves from the default registry.
+- No credentials needed. No `@stoachain:registry=...` lines needed.
+
+### For contributors publishing new versions
+
+Same workflow as before: bump version, update changelog, `git tag v$VERSION && git push --tags`. The `publish.yml` workflow handles the rest. The `NPM_TOKEN` secret in the repo needs to be rotated every 90 days (granular npm tokens' max lifetime).
+
 ## 1.1.0 — 2026-04-22
 
 **Tier 2 testing pass.** 18 new tests across 2 files (one extension + one new). 286 total pass (was 268). No source changes — tests exercise existing code paths that weren't previously covered. See `OuronetUI/docs/TESTING_STRATEGY.md` §Tier 2.

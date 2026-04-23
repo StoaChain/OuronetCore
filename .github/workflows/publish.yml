@@ -1,13 +1,15 @@
-name: Publish to GitHub Packages
+name: Publish to npmjs.org
 
-# Triggered by pushing a version tag (e.g. v0.10.0, v1.0.0).
-# Publishes this package to GitHub Packages under the @stoachain scope
-# at https://github.com/orgs/StoaChain/packages so OuronetUI, HUB, and
-# any other consumer can `npm install @stoachain/ouronet-core@^X.Y.Z`
-# from a registry instead of the `file:` link we used during Phases
-# 1–4. No cross-org secret needed: `GITHUB_TOKEN` with `packages: write`
-# permission is enough because we're publishing to this repo's own
-# package registry.
+# Triggered by pushing a version tag (e.g. v1.2.0).
+# Publishes this package to the public npmjs.org registry under the
+# @stoachain scope so OuronetUI, HUB, and any other consumer can
+# `npm install @stoachain/ouronet-core@^X.Y.Z` without auth.
+#
+# Switched from GitHub Packages → npmjs.org at v1.2.0 because
+# GitHub Packages requires a PAT even for "public" scoped packages,
+# which complicated every consumer's setup (Ploi, local dev, team
+# laptops). npmjs.org is the standard public JS registry — zero
+# auth needed for install; auth only needed on OUR side for publish.
 
 on:
   push:
@@ -19,24 +21,23 @@ jobs:
     name: Build & Publish
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    permissions:
-      contents: read
-      packages: write
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Node + scoped registry. `setup-node`'s registry-url wires the
-      # generated .npmrc to publish to GitHub Packages; the `scope`
-      # ensures the `@stoachain/*` prefix maps correctly. npm uses
-      # NODE_AUTH_TOKEN under the hood when registry-url is set.
+      # setup-node writes a scratch .npmrc in the runner's HOME that
+      # points @stoachain resolution at npmjs.org and sets the auth
+      # token from ${NODE_AUTH_TOKEN}. Consumers installing this
+      # package don't need any of this — the registry is the default
+      # npm registry, so `npm install @stoachain/ouronet-core` works
+      # out of the box anywhere.
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-          registry-url: https://npm.pkg.github.com
+          registry-url: https://registry.npmjs.org
           scope: "@stoachain"
 
       - name: Install dependencies
@@ -44,7 +45,7 @@ jobs:
 
       # Belt-and-suspenders: tests + build gate the publish so a broken
       # core never makes it to the registry. The `prepare` script also
-      # builds dist/ pre-publish — this is redundant and intentional.
+      # builds dist/ pre-publish — redundant and intentional.
       - name: Typecheck + Test + Build
         run: |
           npm run typecheck
@@ -52,8 +53,8 @@ jobs:
           npm run build
 
       # Verify the tag matches the package.json version — reject
-      # mismatched tags so we don't publish v0.10.0 from a tag that
-      # says v0.10.1 (or vice versa).
+      # mismatched tags so we don't publish v1.2.0 from a tag that
+      # says v1.2.1 (or vice versa).
       - name: Verify tag matches package.json version
         run: |
           TAG_VERSION="${GITHUB_REF#refs/tags/v}"
@@ -64,7 +65,11 @@ jobs:
           fi
           echo "Tag $TAG_VERSION matches package.json — proceeding"
 
-      - name: Publish to GitHub Packages
-        run: npm publish
+      # Publishes to npmjs.org. `--access public` is required on the
+      # first publish of a scoped package (@stoachain/...) — npm's
+      # default is restricted for scoped packages. Our publishConfig
+      # in package.json also sets "access": "public" as belt-and-braces.
+      - name: Publish to npmjs.org
+        run: npm publish --access public
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
