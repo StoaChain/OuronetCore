@@ -2,6 +2,10 @@
 
 All notable changes to `@stoachain/ouronet-core`.
 
+## 1.2.1 — 2026-04-23
+
+**Publish fix.** v1.2.0's publish workflow failed with `ENEEDAUTH` because `setup-node`'s scope-based `.npmrc` generation didn't reliably propagate `NODE_AUTH_TOKEN` to `npm publish`. Rewrote the workflow to write `.npmrc` itself with an explicit `_authToken` line, plus added an `npm whoami` verify step so future auth failures surface earlier. Pure infrastructure fix — source code identical to v1.2.0.
+
 ## 1.2.0 — 2026-04-22
 
 **Registry switch: GitHub Packages → npmjs.org.** Pure distribution change, zero source code changes. Everything that made v1.1.0 work still works identically; consumers just pull from a different registry.

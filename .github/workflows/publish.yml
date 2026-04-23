@@ -4,12 +4,6 @@ name: Publish to npmjs.org
 # Publishes this package to the public npmjs.org registry under the
 # @stoachain scope so OuronetUI, HUB, and any other consumer can
 # `npm install @stoachain/ouronet-core@^X.Y.Z` without auth.
-#
-# Switched from GitHub Packages → npmjs.org at v1.2.0 because
-# GitHub Packages requires a PAT even for "public" scoped packages,
-# which complicated every consumer's setup (Ploi, local dev, team
-# laptops). npmjs.org is the standard public JS registry — zero
-# auth needed for install; auth only needed on OUR side for publish.
 
 on:
   push:
@@ -26,35 +20,40 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # setup-node writes a scratch .npmrc in the runner's HOME that
-      # points @stoachain resolution at npmjs.org and sets the auth
-      # token from ${NODE_AUTH_TOKEN}. Consumers installing this
-      # package don't need any of this — the registry is the default
-      # npm registry, so `npm install @stoachain/ouronet-core` works
-      # out of the box anywhere.
+      # Plain Node setup — no registry-url here so setup-node doesn't
+      # write its own scoped .npmrc. We write the root .npmrc ourselves
+      # in the next step (more reliable than setup-node's scope flag).
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-          registry-url: https://registry.npmjs.org
-          scope: "@stoachain"
+
+      # Explicit .npmrc for the publish — written at the repo root so
+      # npm picks it up regardless of working directory. `always-auth`
+      # + the registry-specific _authToken line is the canonical pattern
+      # npm itself documents for CI publishing.
+      - name: Write .npmrc with auth token
+        run: |
+          cat > .npmrc <<EOF
+          //registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}
+          @stoachain:registry=https://registry.npmjs.org
+          always-auth=true
+          EOF
+          echo "--- .npmrc structure (token redacted) ---"
+          sed 's|=.*|=***|' .npmrc
 
       - name: Install dependencies
         run: npm install --prefer-offline --no-audit --no-fund
 
       # Belt-and-suspenders: tests + build gate the publish so a broken
-      # core never makes it to the registry. The `prepare` script also
-      # builds dist/ pre-publish — redundant and intentional.
+      # core never makes it to the registry.
       - name: Typecheck + Test + Build
         run: |
           npm run typecheck
           npm test
           npm run build
 
-      # Verify the tag matches the package.json version — reject
-      # mismatched tags so we don't publish v1.2.0 from a tag that
-      # says v1.2.1 (or vice versa).
       - name: Verify tag matches package.json version
         run: |
           TAG_VERSION="${GITHUB_REF#refs/tags/v}"
@@ -65,11 +64,10 @@ jobs:
           fi
           echo "Tag $TAG_VERSION matches package.json — proceeding"
 
-      # Publishes to npmjs.org. `--access public` is required on the
-      # first publish of a scoped package (@stoachain/...) — npm's
-      # default is restricted for scoped packages. Our publishConfig
-      # in package.json also sets "access": "public" as belt-and-braces.
+      - name: Verify npm auth
+        run: |
+          echo "Checking npm whoami..."
+          npm whoami || echo "::warning::whoami failed — publish may too"
+
       - name: Publish to npmjs.org
         run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
