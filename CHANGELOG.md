@@ -2,6 +2,44 @@
 
 All notable changes to `@stoachain/ouronet-core`.
 
+## 1.5.0 — 2026-04-24
+
+**Historical-curve primitives surfaced via the `/dalos` subpath.**
+Pairs with `@stoachain/dalos-crypto@1.2.0`, which promotes LETO /
+ARTEMIS / APOLLO from low-level `Ellipse` constants to full
+`CryptographicPrimitive` singletons with their own address prefixes,
+Schnorr v2 sign + verify, and registry detection.
+
+OuronetCore re-exports the new symbols through its `/dalos` subpath so
+downstream consumers (OuronetUI, AncientHoldings HUB, custom tools)
+can reach them without adding a direct dependency on dalos-crypto.
+
+### Added (re-exports from `@stoachain/dalos-crypto/registry`)
+
+- `Leto`, `Artemis`, `Apollo` — the three historical-curve primitive
+  singletons. Each implements `CryptographicPrimitive` (5 input paths
+  + Schnorr v2 + detect-by-prefix). **NOT registered in the default
+  registry** — opt-in via `registry.register(Leto)`.
+- `createGen1Primitive(config)` — factory for building custom
+  Gen-1-family primitives from any `Ellipse` + prefix-pair config.
+- `AddressPrefixPair` type + `DALOS_PREFIXES` constant — for
+  consumers needing to construct primitives with their own prefix
+  conventions.
+
+### Changed
+
+- `package.json` dependency range on `@stoachain/dalos-crypto` tightened
+  to `^1.2.0` (was `^1.0.0`) — the new symbols require that version
+  floor.
+
+### Unchanged (Ouronet behaviour preserved)
+
+- `createDefaultRegistry()` still returns a registry with only
+  `DalosGenesis`. Ouronet continues to use DALOS Genesis exclusively.
+- `createOuronetAccount` / Pact builders / signing / codex — no
+  changes.
+- Full 295/295 test suite still passes.
+
 ## 1.4.0 — 2026-04-24
 
 **Smart Ouronet Account fields in batched selector.** Extends the

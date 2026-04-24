@@ -6,8 +6,9 @@ Pact interactions, Codex signing, guard analysis, encryption. Consumed by
 
 ## Status
 
-**`1.4.0` on public npmjs** — extraction complete + DALOS cryptography
-integration + Smart-account metadata in the batched selector.
+**`1.5.0` on public npmjs** — extraction complete + DALOS cryptography
+integration + Smart-account metadata in the batched selector + historical
+primitives surfaced.
 
 Every piece of blockchain logic that used to live in OuronetUI has
 landed here: Pact builders, signing pipeline (CodexSigningStrategy +
@@ -16,7 +17,7 @@ analysis, gas calibration, codex codec, seed-type migration. OuronetUI
 is now a pure consumer.
 
 Since **v1.3.0**, OuronetCore integrates
-**[`@stoachain/dalos-crypto@^1.1.0`](https://www.npmjs.com/package/@stoachain/dalos-crypto)**
+**[`@stoachain/dalos-crypto@^1.2.0`](https://www.npmjs.com/package/@stoachain/dalos-crypto)**
 via a new `./dalos` subpath — consumers mint Ouronet accounts locally
 (all six DALOS input modes: random, bitmap, bitstring, base-10,
 base-49, seed words) without touching the retired
@@ -27,6 +28,15 @@ batched `URC_0027_AccountSelectorMapper` to include `public-key`,
 `sovereign`, and `governor` — the three fields the on-chain mapper
 started returning to support Smart Ouronet Account display (Σ. prefix
 accounts with sovereign + governor authorisation paths).
+
+**v1.5.0** re-exports the new `Leto` / `Artemis` / `Apollo`
+historical-curve primitives (v1.2.0 of dalos-crypto) through the
+`./dalos` subpath, plus the `createGen1Primitive` factory and
+`AddressPrefixPair` type. These are **NOT** registered in
+`createDefaultRegistry()` — Ouronet continues to use DALOS Genesis
+exclusively; the re-exports exist so consumers who need the
+historical primitives can reach them without adding a direct
+dependency on dalos-crypto.
 
 **295 tests** pass on every commit (268 core + 9 DALOS integration +
 18 misc). Published to the public npmjs registry via
