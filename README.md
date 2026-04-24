@@ -6,8 +6,8 @@ Pact interactions, Codex signing, guard analysis, encryption. Consumed by
 
 ## Status
 
-**`1.3.0` on public npmjs** — extraction complete + DALOS cryptography
-integration.
+**`1.4.0` on public npmjs** — extraction complete + DALOS cryptography
+integration + Smart-account metadata in the batched selector.
 
 Every piece of blockchain logic that used to live in OuronetUI has
 landed here: Pact builders, signing pipeline (CodexSigningStrategy +
@@ -15,12 +15,18 @@ universalSignTransaction), encryption (V1 + V2 + smartDecrypt), guard
 analysis, gas calibration, codex codec, seed-type migration. OuronetUI
 is now a pure consumer.
 
-As of **v1.3.0**, OuronetCore also integrates
+Since **v1.3.0**, OuronetCore integrates
 **[`@stoachain/dalos-crypto@^1.1.0`](https://www.npmjs.com/package/@stoachain/dalos-crypto)**
 via a new `./dalos` subpath — consumers mint Ouronet accounts locally
 (all six DALOS input modes: random, bitmap, bitstring, base-10,
 base-49, seed words) without touching the retired
 `go.ouronetwork.io/api/generate` endpoint.
+
+**v1.4.0** extends the `AccountSelectorData` type returned by the
+batched `URC_0027_AccountSelectorMapper` to include `public-key`,
+`sovereign`, and `governor` — the three fields the on-chain mapper
+started returning to support Smart Ouronet Account display (Σ. prefix
+accounts with sovereign + governor authorisation paths).
 
 **295 tests** pass on every commit (268 core + 9 DALOS integration +
 18 misc). Published to the public npmjs registry via
