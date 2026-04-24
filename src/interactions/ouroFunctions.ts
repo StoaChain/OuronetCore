@@ -26,6 +26,35 @@ export interface AccountSelectorData {
   "payment-key-guard": any;
   "ignis-discount": any;
   "stoa-discount": any;
+  /**
+   * On-chain public key for the account — the long base-49 string in the
+   * DALOS `{prefixLenBase49}.{xyBase49}` format. Populated for both
+   * Standard (Ѻ.) and Smart (Σ.) accounts. **This is the on-chain source
+   * of truth** and is expected to match the codex-stored `publicKey` for
+   * any account created through the standard flow. A mismatch would
+   * indicate either (a) an admin-level key rotation performed on chain
+   * (designed as a last-resort correction tool), or (b) a corrupted
+   * codex entry. Added in ouronet-core v1.4.0 alongside the
+   * `URC_0027_AccountSelectorMapper` Pact-side extension.
+   */
+  "public-key": string;
+  /**
+   * Sovereign — only populated for Smart accounts (iz-smart = true). The
+   * Ѻ. Standard Ouronet Account that has sovereignty over this Smart
+   * account; proving ownership of the sovereign proves ownership of the
+   * Smart account's `sovereign` authorization path. Pact returns `false`
+   * for Standard accounts and unactivated accounts. Added in v1.4.0.
+   */
+  "sovereign": string | false;
+  /**
+   * Governor — only populated for Smart accounts. A Pact guard used for
+   * complex custom authorization logic (capability guards, module guards,
+   * user guards, or additional keyset arrangements). For Smart accounts
+   * where no custom governor has been set, this equals the account's own
+   * `ouronet-account-guard`. Pact returns `false` for Standard accounts
+   * and unactivated accounts. Added in v1.4.0.
+   */
+  "governor": any | false; // IKeyset / capability / module guard / false
 }
 
 export async function getAccountSelectorData(accounts: string[], options?: { skipTempWatcher?: boolean }): Promise<AccountSelectorData[]> {

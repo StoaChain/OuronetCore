@@ -2,6 +2,45 @@
 
 All notable changes to `@stoachain/ouronet-core`.
 
+## 1.4.0 — 2026-04-24
+
+**Smart Ouronet Account fields in batched selector.** Extends the
+on-chain `URC_0027_AccountSelectorMapper` response type (the Pact-side
+change already landed on-chain) so the TypeScript consumers can type
+and display the three new fields that the mapper now returns:
+`public-key`, `sovereign`, and `governor`.
+
+### Added
+
+- `AccountSelectorData.public-key: string` — on-chain source-of-truth
+  public key (DALOS `{prefixLenBase49}.{xyBase49}` format). Populated
+  for both Standard and Smart accounts; expected to match the
+  codex-stored `publicKey` for any account created through the normal
+  flow. A mismatch indicates either an admin-level chain-side rotation
+  (last-resort correction tool) or a corrupted codex entry.
+- `AccountSelectorData.sovereign: string | false` — only populated for
+  Smart (Σ.) accounts. Pact returns the Ѻ. address of the sovereign
+  Standard account that controls the Smart account's sovereign
+  authorization path. Standard accounts and unactivated accounts
+  return `false`.
+- `AccountSelectorData.governor: any | false` — only populated for
+  Smart accounts. The Pact guard used for complex custom authorization
+  (capability / module / user guards, alternative keysets). For Smart
+  accounts where no custom governor has been set, this matches the
+  account's own `ouronet-account-guard`. Standard accounts and
+  unactivated accounts return `false`.
+
+### Notes
+
+No other changes to the interaction surface; `getAccountSelectorData`
+itself is unchanged (it already returns whatever the Pact mapper
+sends, just with an extended TS type now). The three new fields flow
+through the existing T5 read → 80-second sync cycle in OuronetUI.
+
+Future Smart-account management operations (spawn on-chain,
+rotate-governor, etc.) will be added in a subsequent release as typed
+Pact builders.
+
 ## 1.3.0 — 2026-04-23
 
 **DALOS Cryptography integration.** OuronetCore now exposes the full DALOS cryptographic stack through a new `./dalos` subpath. Consumers (OuronetUI, AncientHoldings hub, CLI tools) can mint Ouronet accounts locally, sign with Schnorr v2, and verify addresses via a single, stable API without depending on the remote `go.ouronetwork.io/api/generate` service.
