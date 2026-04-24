@@ -6,14 +6,29 @@ Pact interactions, Codex signing, guard analysis, encryption. Consumed by
 
 ## Status
 
-**`1.0.0` — extraction complete.** Every piece of blockchain logic that
-used to live in OuronetUI has landed here: Pact builders, signing pipeline
-(CodexSigningStrategy + universalSignTransaction), encryption (V1 + V2 +
-smartDecrypt), guard analysis, gas calibration, codex codec, seed-type
-migration. OuronetUI is now a pure consumer.
+**`1.3.0` on public npmjs** — extraction complete + DALOS cryptography
+integration.
 
-268 tests pass on every commit. Published to GitHub Packages on version
-tags (v* → `.github/workflows/publish.yml` → `https://npm.pkg.github.com`).
+Every piece of blockchain logic that used to live in OuronetUI has
+landed here: Pact builders, signing pipeline (CodexSigningStrategy +
+universalSignTransaction), encryption (V1 + V2 + smartDecrypt), guard
+analysis, gas calibration, codex codec, seed-type migration. OuronetUI
+is now a pure consumer.
+
+As of **v1.3.0**, OuronetCore also integrates
+**[`@stoachain/dalos-crypto@^1.1.0`](https://www.npmjs.com/package/@stoachain/dalos-crypto)**
+via a new `./dalos` subpath — consumers mint Ouronet accounts locally
+(all six DALOS input modes: random, bitmap, bitstring, base-10,
+base-49, seed words) without touching the retired
+`go.ouronetwork.io/api/generate` endpoint.
+
+**295 tests** pass on every commit (268 core + 9 DALOS integration +
+18 misc). Published to the public npmjs registry via
+`.github/workflows/publish.yml` on every `v*` tag.
+
+```bash
+npm install @stoachain/ouronet-core
+```
 
 ## Design docs
 
@@ -44,6 +59,45 @@ Each is a subpath export of the package: `import { ... } from "@stoachain/ourone
 | `@stoachain/ouronet-core/reads` | `rawCalibratedDirtyRead` (pure Pact read with node failover; no cache) |
 | `@stoachain/ouronet-core/pact` | `formatDecimalForPact`, `safeCreationTime`, `filterFreePositionData`, EU locale formatters, and **14 `buildXxxPactCode` builders** for every CFM function the ecosystem ships |
 | `@stoachain/ouronet-core/interactions` | Read helpers (`getXxxInfo`, `getXxxBalance`, `getHibernatedNonces…`) + non-CFM execute helpers (`executeWrapStoa`, `executeWrapUrStoa`, `executeNativeUrStoaTransfer`) |
+| `@stoachain/ouronet-core/dalos` | **(v1.3.0+)** thin re-export of `@stoachain/dalos-crypto/registry` + `createOuronetAccount(registry, options)` convenience helper covering all 6 DALOS input modes. One-stop shop for browser-side key-gen; no need to install `dalos-crypto` as a separate dep. |
+
+## Quick start — `/dalos` subpath
+
+Mint a new Ouronet account locally in one call:
+
+```ts
+import {
+  createDefaultRegistry,
+  createOuronetAccount,
+} from "@stoachain/ouronet-core/dalos";
+
+const registry = createDefaultRegistry();
+
+// Random account (simplest — OS randomness)
+const a = createOuronetAccount(registry, { mode: "random" });
+
+// From a seed phrase (any array of UTF-8 words, 4–256 entries)
+const b = createOuronetAccount(registry, {
+  mode: "seedWords",
+  data: ["mountain", "whisper", "aurora", "eternal"],
+});
+
+// From a 40×40 bitmap (1 = black, 0 = white; row-major TTB-LTR)
+import type { Bitmap } from "@stoachain/ouronet-core/dalos";
+const bitmap: Bitmap = /* 40 rows × 40 cols */;
+const c = createOuronetAccount(registry, { mode: "bitmap", data: bitmap });
+
+console.log(b.standardAddress);    // Ѻ.xxxxx…
+console.log(b.keyPair.priv);       // base-49 private key
+console.log(b.privateKey.int49);   // same, via `privateKey` object
+console.log(b.privateKey.int10);   // base-10 representation
+console.log(b.privateKey.bitString); // 1600-bit binary
+```
+
+Same API shape as `@stoachain/dalos-crypto/registry` — OuronetCore just
+re-exports the types and adds `createOuronetAccount` as a convenience.
+See [`@stoachain/dalos-crypto`](https://www.npmjs.com/package/@stoachain/dalos-crypto)
+for deeper documentation on the cryptographic primitive itself.
 
 ## Local development
 
@@ -51,7 +105,7 @@ Each is a subpath export of the package: `import { ... } from "@stoachain/ourone
 npm install
 npm run build        # tsc -p tsconfig.build.json → dist/
 npm run typecheck    # tsc --noEmit
-npm test             # vitest run — 268 tests across crypto, guard, gas, pact format, signing, strategy, codex, cfmBuilders
+npm test             # vitest run — 295 tests across crypto, guard, gas, pact format, signing, strategy, codex, cfmBuilders, dalos integration
 ```
 
 To hot-reload changes into OuronetUI (which now depends on the published
@@ -67,14 +121,14 @@ cd OuronetUI  && npm link @stoachain/ouronet-core
 ## Publishing
 
 Push a `v*`-prefixed tag and `.github/workflows/publish.yml` handles the
-rest — typecheck + build + test + `npm publish` to GitHub Packages under
-the `@stoachain` scope. Version parity check bakes in protection against
-mismatched tag / package.json versions.
+rest — typecheck + build + test + `npm publish` to **public npmjs.org**
+under the `@stoachain` scope. Version parity check bakes in protection
+against mismatched tag / package.json versions.
 
 ```bash
 # After bumping package.json + CHANGELOG.md and committing:
-git tag v1.2.3 -m "v1.2.3 — ..."
-git push origin v1.2.3
+git tag v1.3.1 -m "v1.3.1 — ..."
+git push origin v1.3.1
 # Workflow publishes within ~2 minutes. Consumers run `npm install` to pick up.
 ```
 
@@ -85,6 +139,6 @@ deliberately. Changelog in `CHANGELOG.md`.
 
 ## License
 
-UNLICENSED (org-owned package). Package visibility set at the GitHub org
-level — consult `https://github.com/orgs/StoaChain/packages` for current
-state.
+UNLICENSED (org-owned package). Public on
+[npmjs.com/package/@stoachain/ouronet-core](https://www.npmjs.com/package/@stoachain/ouronet-core);
+authoring rights retained by AncientHoldings GmbH.
