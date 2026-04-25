@@ -2,6 +2,96 @@
 
 All notable changes to `@stoachain/ouronet-core`.
 
+## 1.6.0 — 2026-04-25
+
+**Smart Ouronet Account auth-path resolution + Rotate Sovereign builder.**
+
+Smart accounts (Σ. prefix) authorise mutations via `enforce-one` over
+three branches: the account's own guard, the current sovereign
+account's guard, and the account's governor. Any one branch
+satisfying its predicate authorises the transaction. This release
+adds the primitives that let downstream consumers (OuronetUI's
+AuthPathZone, the future HUB, custom tooling) discriminate the four
+Pact guard shapes (keyset / keyset-ref / capability / user) and
+produce a ready-to-render summary of which branches the codex can
+sign for, plus the first CFM builder that targets a Smart account's
+auth path (`C_RotateSovereign`).
+
+`CodexSigningStrategy` is **unchanged**: it still takes
+`guards: IKeyset[]` (AND-required). The UI resolves the OR-of-3 to a
+single chosen keyset before calling `strategy.execute`. This keeps
+the strategy small and pushes the auth-path picker UX where it
+belongs (the consumer).
+
+### Added
+
+- `src/guard/smartAccountAuth.ts` — three new primitives, all pure
+  (no I/O, no `@kadena/client`):
+  - `classifyGuardKind(g: unknown): 'keyset' | 'keyset-ref' | 'capability' | 'user' | 'unknown'`
+    — pure shape discriminator. Mirrors OuronetUI's `<GuardTree>`
+    detection 1:1; both stay in lockstep across releases.
+  - `extractKeysetFromGuard(g: unknown): IKeyset | null` — returns
+    the keyset payload for inline keysets and resolved keyset-refs;
+    null for unresolved refs / capabilities / user-guards.
+    Caller resolves keyset-refs upstream via existing `resolveGuard`.
+  - `analyzeSmartAccountAuthPaths({ accountGuard, sovereignGuard, governor }, codexPubs, manualKeys)`
+    — composes the classifier + extractor + `analyzeGuard` for each
+    of the three branches and returns a `SmartAccountAuthPaths`
+    summary: per-branch kind / keyBased / GuardAnalysis / rawGuard,
+    plus derived `anyKeyBased` and `firstSatisfied` flags.
+- `src/pact/cfmBuilders.ts` — `buildRotateSovereignPactCode({ patron, account, newSovereign })`.
+  Emits `(ouronet-ns.TS01-C1.DALOS|C_RotateSovereign "<patron>" "<account>" "<new-sovereign>")`.
+- `src/guard/index.ts` re-exports the new module via the existing
+  `/guard` subpath. No package.json `exports` change required.
+- Tests: `tests/smart-account-auth.test.ts` (full truth-tables for all
+  three primitives) + `tests/cfm-builders.test.ts` extended with
+  `buildRotateSovereignPactCode` cases.
+
+### Public-API surface (semver minor — additive only)
+
+```ts
+// New from "@stoachain/ouronet-core/guard"
+export type GuardKind = "keyset" | "keyset-ref" | "capability" | "user" | "unknown";
+export function classifyGuardKind(g: unknown): GuardKind;
+export function extractKeysetFromGuard(g: unknown): IKeyset | null;
+export interface SmartAccountAuthBranch {
+  readonly which: "guard" | "sovereign" | "governor";
+  readonly kind: GuardKind;
+  readonly keyBased: boolean;
+  readonly analysis: GuardAnalysis | null;
+  readonly rawGuard: unknown;
+}
+export interface SmartAccountAuthPaths {
+  readonly branches: readonly [SmartAccountAuthBranch, SmartAccountAuthBranch, SmartAccountAuthBranch];
+  readonly anyKeyBased: boolean;
+  readonly firstSatisfied: number; // 0 | 1 | 2 | -1
+}
+export function analyzeSmartAccountAuthPaths(
+  guards: { accountGuard: unknown; sovereignGuard: unknown; governor: unknown },
+  codexPubs: Set<string>,
+  resolvedManualKeys?: Record<string, string>,
+): SmartAccountAuthPaths;
+
+// New from "@stoachain/ouronet-core/pact"
+export function buildRotateSovereignPactCode(p: {
+  patron: string;
+  account: string;
+  newSovereign: string;
+}): string;
+```
+
+No breaking changes — every existing symbol stays at its v1.5.0
+signature. Consumers can upgrade with a `^1.6.0` range bump and
+`npm install`.
+
+### Unchanged
+
+- `CodexSigningStrategy.execute` signature.
+- `analyzeGuard` / `GuardAnalysis` — the new module composes them,
+  doesn't replace them.
+- `createDefaultRegistry()`, `createOuronetAccount`, encryption,
+  codex codec, gas helpers, all 14 pre-existing CFM builders.
+
 ## 1.5.0 — 2026-04-24
 
 **Historical-curve primitives surfaced via the `/dalos` subpath.**

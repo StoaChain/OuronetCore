@@ -6,9 +6,9 @@ Pact interactions, Codex signing, guard analysis, encryption. Consumed by
 
 ## Status
 
-**`1.5.0` on public npmjs** — extraction complete + DALOS cryptography
+**`1.6.0` on public npmjs** — extraction complete + DALOS cryptography
 integration + Smart-account metadata in the batched selector + historical
-primitives surfaced.
+primitives surfaced + Smart-account auth-path resolution primitives.
 
 Every piece of blockchain logic that used to live in OuronetUI has
 landed here: Pact builders, signing pipeline (CodexSigningStrategy +
@@ -38,9 +38,24 @@ exclusively; the re-exports exist so consumers who need the
 historical primitives can reach them without adding a direct
 dependency on dalos-crypto.
 
-**295 tests** pass on every commit (268 core + 9 DALOS integration +
-18 misc). Published to the public npmjs registry via
-`.github/workflows/publish.yml` on every `v*` tag.
+**v1.6.0** lands the first batch of Smart Ouronet Account auth-path
+primitives. Smart accounts (Σ. prefix) authorise mutations via
+`enforce-one` over THREE branches (account guard, sovereign account
+guard, governor) — any one branch satisfying its predicate authorises
+the transaction. Standard accounts (Ѻ.) still use a single keyset.
+The new `/guard` exports (`classifyGuardKind`, `extractKeysetFromGuard`,
+`analyzeSmartAccountAuthPaths`) let consumers discriminate the four
+guard shapes (keyset / keyset-ref / capability / user) and produce a
+ready-to-render summary of which branches are signable by the codex.
+A new `buildRotateSovereignPactCode` builder lands the first CFM
+function that targets a Smart account's auth path. Strategy itself
+is unchanged — it still takes a single AND-of-keysets array; the UI
+resolves the OR-of-3 to one chosen branch before calling execute.
+
+**~310 tests** pass on every commit (cfm-builders + smart-account-auth
++ codex-codec + crypto + DALOS integration + misc). Published to the
+public npmjs registry via `.github/workflows/publish.yml` on every
+`v*` tag.
 
 ```bash
 npm install @stoachain/ouronet-core
@@ -68,7 +83,7 @@ Each is a subpath export of the package: `import { ... } from "@stoachain/ourone
 | `@stoachain/ouronet-core/constants` | `KADENA_NAMESPACE`, `KADENA_CHAIN_ID`, `KADENA_NETWORK`, `PACT_URL`, gas-station + liquidpot addresses, every `TOKEN_ID_*` |
 | `@stoachain/ouronet-core/network` | Node failover (node2 → node1), URL construction |
 | `@stoachain/ouronet-core/gas` | `calculateAutoGasLimit`, ANU/STOA math |
-| `@stoachain/ouronet-core/guard` | `analyzeGuard`, `buildCodexPubSet`, `selectCapsSigningKey`, `computeThreshold` (all predicates including `stoa-ns.stoic-predicates.*`) |
+| `@stoachain/ouronet-core/guard` | `analyzeGuard`, `buildCodexPubSet`, `selectCapsSigningKey`, `computeThreshold` (all predicates including `stoa-ns.stoic-predicates.*`); **(v1.6.0+)** `classifyGuardKind`, `extractKeysetFromGuard`, `analyzeSmartAccountAuthPaths` for the Smart Ouronet Account three-branch auth-path resolution (`enforce-one` over account-guard / sovereign-guard / governor) |
 | `@stoachain/ouronet-core/crypto` | V1 + V2 AES-GCM-256 encryption, `smartDecrypt`, pure `smartEncrypt(pt, pw, schemaVersion)` |
 | `@stoachain/ouronet-core/signing` | `KeyResolver` / `SigningStrategy` interfaces, `CodexSigningStrategy`, `universalSignTransaction`, signing primitives (`publicKeyFromPrivateKey`, etc.) |
 | `@stoachain/ouronet-core/codex` | `PlaintextCodex` generic type, `serializeCodex` / `deserializeCodex` (backup format `"1.2"`), `migrateSeedType` |

@@ -274,3 +274,33 @@ export function buildFirestarterPactCode(p: {
 }): string {
   return `(${KADENA_NAMESPACE}.TS01-C3.SWP|C_Firestarter "${p.firestarter}")`;
 }
+
+// ─── TS01-C1.DALOS family (Smart Ouronet Account mutations) ──────────────────
+
+/**
+ * Rotate Sovereign — change the sovereign account that has primary
+ * authority over a Smart Ouronet Account (Σ. prefix).
+ *
+ * Smart-account auth is `enforce-one` over three branches:
+ *   (a) the Smart account's own guard,
+ *   (b) the current sovereign account's guard,
+ *   (c) the Smart account's governor.
+ * Any one branch satisfying its predicate authorises the rotation.
+ *
+ *   (ouronet-ns.TS01-C1.DALOS|C_RotateSovereign
+ *     <patron> <account> <new-sovereign>)
+ *
+ * `account` is the Σ. Smart account being modified. `new-sovereign`
+ * must be an existing Standard Ouronet Account (Ѻ. prefix); the chain
+ * rejects Σ. → Σ. rotations because Smart accounts cannot be
+ * sovereigns themselves.
+ *
+ * Added in v1.6.0.
+ */
+export function buildRotateSovereignPactCode(p: {
+  patron:       string;
+  account:      string;
+  newSovereign: string;
+}): string {
+  return `(${KADENA_NAMESPACE}.TS01-C1.DALOS|C_RotateSovereign "${p.patron}" "${p.account}" "${p.newSovereign}")`;
+}

@@ -32,6 +32,7 @@ import {
   buildAwakePactCode,
   buildSlumberPactCode,
   buildFirestarterPactCode,
+  buildRotateSovereignPactCode,
 } from "../src/pact/cfmBuilders";
 
 // ─── Canonical fixture values (used across many tests) ──────────────────────
@@ -304,6 +305,7 @@ describe("every builder produces a valid Pact call shape", () => {
     () => buildAwakePactCode({ patron: "a", awaker: "b", dpof: "d", nonce: 1 }),
     () => buildSlumberPactCode({ patron: "a", merger: "b", dpof: "d", nonces: [1] }),
     () => buildFirestarterPactCode({ firestarter: "a" }),
+    () => buildRotateSovereignPactCode({ patron: "a", account: "b", newSovereign: "c" }),
   ];
 
   it.each(samples.map((fn, i) => [i, fn]))("sample %i: starts with (ouronet-ns. and ends with )", (_i, fn) => {
@@ -311,5 +313,40 @@ describe("every builder produces a valid Pact call shape", () => {
     expect(code.startsWith("(ouronet-ns.")).toBe(true);
     expect(code.endsWith(")")).toBe(true);
     expect(code.length).toBeGreaterThan(20);
+  });
+});
+
+// ─── TS01-C1.DALOS — RotateSovereign (Smart-account auth-path mutation) ─────
+
+describe("buildRotateSovereignPactCode", () => {
+  it("emits the canonical 3-arg C_RotateSovereign shape", () => {
+    expect(
+      buildRotateSovereignPactCode({
+        patron:       PATRON,
+        account:      "Σ.SMART-ACCT",
+        newSovereign: "Ѻ.NEW-SOV",
+      }),
+    ).toBe(
+      `(ouronet-ns.TS01-C1.DALOS|C_RotateSovereign "${PATRON}" "Σ.SMART-ACCT" "Ѻ.NEW-SOV")`,
+    );
+  });
+
+  it("uses the DALOS module + TS01-C1 namespace + C_RotateSovereign function", () => {
+    const code = buildRotateSovereignPactCode({
+      patron: "p", account: "Σ.a", newSovereign: "Ѻ.s",
+    });
+    expect(code).toContain(".TS01-C1.DALOS|C_RotateSovereign ");
+    // Argument ORDER guard — flipping account / new-sovereign would
+    // produce a chain-side error that's hard to debug from logs.
+    expect(code.indexOf(`"Σ.a"`)).toBeLessThan(code.indexOf(`"Ѻ.s"`));
+  });
+
+  it("preserves the standard / smart prefix characters byte-for-byte", () => {
+    const code = buildRotateSovereignPactCode({
+      patron: "Ѻ.PATRON", account: "Σ.SMART", newSovereign: "Ѻ.NEW",
+    });
+    expect(code).toContain(`"Ѻ.PATRON"`);
+    expect(code).toContain(`"Σ.SMART"`);
+    expect(code).toContain(`"Ѻ.NEW"`);
   });
 });
