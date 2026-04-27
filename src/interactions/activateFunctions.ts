@@ -5,7 +5,7 @@
 
 import {
   KADENA_NAMESPACE, KADENA_CHAIN_ID, KADENA_NETWORK,
-  PACT_URL, STOA_AUTONOMIC_OURONETGASSTATION,
+  getPactUrl, STOA_AUTONOMIC_OURONETGASSTATION,
 } from "../constants";
 import { Pact, createClient } from "@kadena/client";
 import { pactRead } from "../reads";
@@ -179,7 +179,7 @@ export async function executeDeployStandardAccount(
     return builder.createTransaction();
   };
 
-  const { dirtyRead, submit } = createClient(PACT_URL);
+  const { dirtyRead, submit } = createClient(getPactUrl(KADENA_CHAIN_ID));
 
   // 1. Simulate with 2M (network max)
   let transaction = buildTransaction();

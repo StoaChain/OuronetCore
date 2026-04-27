@@ -9,7 +9,7 @@ import {
   KADENA_CHAIN_ID,
   KADENA_NAMESPACE,
   KADENA_NETWORK,
-  PACT_URL,
+  getPactUrl,
   STOA_AUTONOMIC_OURONETGASSTATION,
   STOA_AUTONOMIC_LIQUIDPOT,
 } from "../constants";
@@ -45,7 +45,7 @@ export async function getWrapStoaInfo(
       .setNetworkId(KADENA_NETWORK)
       .setMeta({ chainId: KADENA_CHAIN_ID, gasLimit: 100_000 })
       .createTransaction();
-    const { dirtyRead } = createClient(PACT_URL);
+    const { dirtyRead } = createClient(getPactUrl(KADENA_CHAIN_ID));
     const response = await dirtyRead(transaction);
     if (response?.result?.status === "success") {
       return (response.result as any).data;
@@ -69,7 +69,7 @@ export async function getWrapperPaymentKey(wrapper: string): Promise<string | nu
       .setNetworkId(KADENA_NETWORK)
       .setMeta({ chainId: KADENA_CHAIN_ID, gasLimit: 50_000 })
       .createTransaction();
-    const { dirtyRead } = createClient(PACT_URL);
+    const { dirtyRead } = createClient(getPactUrl(KADENA_CHAIN_ID));
     const response = await dirtyRead(transaction);
     if (response?.result?.status === "success") {
       return String((response.result as any).data);
@@ -93,7 +93,7 @@ export async function getPaymentKeyBalance(paymentKeyAddress: string): Promise<n
       .setNetworkId(KADENA_NETWORK)
       .setMeta({ chainId: KADENA_CHAIN_ID, gasLimit: 50_000 })
       .createTransaction();
-    const { dirtyRead } = createClient(PACT_URL);
+    const { dirtyRead } = createClient(getPactUrl(KADENA_CHAIN_ID));
     const response = await dirtyRead(transaction);
     if (response?.result?.status === "success") {
       const data = (response.result as any).data;
@@ -187,7 +187,7 @@ export async function executeWrapStoa(params: WrapStoaParams): Promise<any> {
     return builder.createTransaction();
   };
 
-  const { dirtyRead, submit } = createClient(PACT_URL);
+  const { dirtyRead, submit } = createClient(getPactUrl(KADENA_CHAIN_ID));
 
   // 1. Simulate with 2M (network max)
   const simTx = buildTransaction();
@@ -241,7 +241,7 @@ export async function getWrapUrStoaInfo(
       .setNetworkId(KADENA_NETWORK)
       .setMeta({ chainId: KADENA_CHAIN_ID, gasLimit: 100_000 })
       .createTransaction();
-    const { dirtyRead } = createClient(PACT_URL);
+    const { dirtyRead } = createClient(getPactUrl(KADENA_CHAIN_ID));
     const response = await dirtyRead(transaction);
     if (response?.result?.status === "success") {
       return (response.result as any).data;
@@ -302,7 +302,7 @@ export async function executeWrapUrStoa(params: WrapUrStoaParams): Promise<any> 
     return (builder as any).createTransaction();
   };
 
-  const { dirtyRead, submit } = createClient(PACT_URL);
+  const { dirtyRead, submit } = createClient(getPactUrl(KADENA_CHAIN_ID));
 
   // 1. Simulate with 2M (network max)
   const simTx = buildTransaction();

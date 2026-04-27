@@ -2,6 +2,69 @@
 
 All notable changes to `@stoachain/ouronet-core`.
 
+## 1.6.1 — 2026-04-27
+
+**Fix: every internal `interactions/*` helper now honors the active node.**
+
+`PACT_URL` was a static module-level constant frozen at import time —
+`https://node2.stoachain.com/.../pact`. Code inside `interactions/*.ts`
+called `createClient(PACT_URL)` directly, which created Pact clients
+pinned to node2 forever, completely bypassing the failover machinery
+in `network/nodeFailover` (which `withFailover` and `pactRead` honor
+correctly). Symptom: when a consumer flipped the primary to node1
+via `setNodeConfig("node1")`, batched read/write helpers in core's
+interactions still hit node2 and timed out / returned stale data.
+
+55 occurrences across 11 files swapped from `createClient(PACT_URL)`
+to `createClient(getPactUrl(KADENA_CHAIN_ID))`. The `getPactUrl`
+helper (which itself wraps `getActivePactUrl` from nodeFailover) was
+already exported from `constants/kadena.ts` since v1.5.0 — this
+release just makes everything inside core actually use it.
+
+### Changed
+
+- `src/interactions/activateFunctions.ts` — 1 site
+- `src/interactions/addLiquidityFunctions.ts` — 18 sites
+- `src/interactions/coilFunctions.ts` — 1 site
+- `src/interactions/dexFunctions.ts` — 6 sites
+- `src/interactions/guardFunctions.ts` — 1 site
+- `src/interactions/kadenaFunctions.ts` — 2 sites
+- `src/interactions/kpayFunctions.ts` — 1 site
+- `src/interactions/ouroFunctions.ts` — 13 sites
+- `src/interactions/pensionFunctions.ts` — 2 sites
+- `src/interactions/urStoaFunctions.ts` — 4 sites
+- `src/interactions/wrapFunctions.ts` — 6 sites
+
+Each file's `import` from `../constants` swapped `PACT_URL` for
+`getPactUrl`. No other behaviour change in any helper.
+
+### Unchanged
+
+- `PACT_URL` still exported from `constants/kadena` for backwards
+  compatibility (consumers may still depend on it). New code should
+  use `getPactUrl(chainId)` instead.
+- `getActivePactUrl` / `getActiveSpvUrl` / `setNodeConfig` /
+  `getCurrentNodeStatus` / `withFailover` from `network` —
+  unchanged.
+- All 320 tests pass; no test changes required.
+
+### Why this matters for consumers
+
+Before 1.6.1: a UI calling `setNodeConfig("node1")` got correct
+failover for any read using `pactRead` (URC_0027 batched account
+selector, balance fetches, guard fetches), but broken behaviour for
+every transaction-submitting modal — those built their `Pact.builder`
+through a `createClient(PACT_URL)` instance still pointing at node2.
+
+After 1.6.1: the entire core resolves the Pact endpoint through the
+same dynamic getter, so a single `setNodeConfig` flip routes every
+internal call (reads + simulates + submits) to the chosen node.
+
+UI consumers (OuronetUI specifically) should ALSO replace any
+direct `import { PACT_URL }` + `createClient(PACT_URL)` pattern in
+their own source — the OuronetUI v0.30.13b bump does this
+alongside the core upgrade.
+
 ## 1.6.0 — 2026-04-25
 
 **Smart Ouronet Account auth-path resolution + Rotate Sovereign builder.**

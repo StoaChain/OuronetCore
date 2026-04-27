@@ -4,7 +4,7 @@ import {
   KADENA_NAMESPACE,
   GAS_STATION,
   KADENA_NETWORK,
-  PACT_URL,
+  getPactUrl,
 } from "../constants";
 import { Pact, createClient } from "@kadena/client";
 import { pactRead } from "../reads";
@@ -164,7 +164,7 @@ export async function rotateGuard(params: RotateGuardParams) {
     return builder.createTransaction();
   };
 
-  const { dirtyRead, submit } = createClient(PACT_URL);
+  const { dirtyRead, submit } = createClient(getPactUrl(KADENA_CHAIN_ID));
 
   let transaction = buildTransaction();
   const simulation = await dirtyRead(transaction);

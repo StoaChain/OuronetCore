@@ -3,7 +3,7 @@ import {
   KADENA_CHAIN_ID,
   KADENA_NAMESPACE, GAS_STATION,
   KADENA_NETWORK,
-  PACT_URL,
+  getPactUrl,
 } from "../constants";
 import { Pact, createClient } from "@kadena/client";
 import { pactRead } from "../reads";
@@ -241,7 +241,7 @@ export async function kpayBuy(
       .createTransaction();
   };
 
-  const { dirtyRead, submit } = createClient(PACT_URL);
+  const { dirtyRead, submit } = createClient(getPactUrl(KADENA_CHAIN_ID));
 
   // 5. Build and simulate UNSIGNED to check gas
   let transaction = buildTransaction();

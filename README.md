@@ -6,9 +6,11 @@ Pact interactions, Codex signing, guard analysis, encryption. Consumed by
 
 ## Status
 
-**`1.6.0` on public npmjs** — extraction complete + DALOS cryptography
+**`1.6.1` on public npmjs** — extraction complete + DALOS cryptography
 integration + Smart-account metadata in the batched selector + historical
-primitives surfaced + Smart-account auth-path resolution primitives.
+primitives surfaced + Smart-account auth-path resolution primitives + every
+internal `interactions/*` helper now honors the active node (no more
+node2-pinned `createClient(PACT_URL)` calls).
 
 Every piece of blockchain logic that used to live in OuronetUI has
 landed here: Pact builders, signing pipeline (CodexSigningStrategy +

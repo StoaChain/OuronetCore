@@ -1,4 +1,4 @@
-import { KADENA_CHAIN_ID, KADENA_NETWORK, PACT_URL } from "../constants";
+import { KADENA_CHAIN_ID, KADENA_NETWORK, getPactUrl } from "../constants";
 import { Pact, createClient } from "@kadena/client";
 
 export interface BalanceItem {
@@ -13,7 +13,7 @@ export async function getBalance(account: string): Promise<BalanceItem> {
     .setNetworkId(KADENA_NETWORK)
     .createTransaction();
 
-  const { dirtyRead } = createClient(PACT_URL);
+  const { dirtyRead } = createClient(getPactUrl(KADENA_CHAIN_ID));
 
   const response = await dirtyRead(transaction);
 
@@ -33,7 +33,7 @@ export async function accountDescription(address: string) {
     .setNetworkId(KADENA_NETWORK)
     .createTransaction();
 
-  const { dirtyRead } = createClient(PACT_URL);
+  const { dirtyRead } = createClient(getPactUrl(KADENA_CHAIN_ID));
 
   const { result }: any = await dirtyRead(transaction);
 

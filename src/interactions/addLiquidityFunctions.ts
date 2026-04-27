@@ -3,7 +3,7 @@ import {
   KADENA_CHAIN_ID,
   KADENA_NAMESPACE, GAS_STATION,
   KADENA_NETWORK,
-  PACT_URL,
+  getPactUrl,
 } from "../constants";
 import { Pact, createClient } from "@kadena/client";
 import { universalSignTransaction, fromKeypair } from "../signing";
@@ -98,7 +98,7 @@ export async function generateLiquidityData(
       })
       .createTransaction();
 
-    const { dirtyRead } = createClient(PACT_URL);
+    const { dirtyRead } = createClient(getPactUrl(KADENA_CHAIN_ID));
     const response = await dirtyRead(transaction);
 
     if (!response || !response.result) {
@@ -134,7 +134,7 @@ export async function validateLiquidityDeviation(
       })
       .createTransaction();
 
-    const { dirtyRead } = createClient(PACT_URL);
+    const { dirtyRead } = createClient(getPactUrl(KADENA_CHAIN_ID));
     const response = await dirtyRead(transaction);
 
     if (!response || !response.result) {
@@ -204,7 +204,7 @@ export async function calculateBalancedLiquidity(
       })
       .createTransaction();
 
-    const { dirtyRead } = createClient(PACT_URL);
+    const { dirtyRead } = createClient(getPactUrl(KADENA_CHAIN_ID));
     const response = await dirtyRead(transaction);
 
     if (!response || !response.result) {
@@ -249,7 +249,7 @@ export async function getLPTypeInfo(swpair: string): Promise<LPTypeInfo> {
             .setMeta({ chainId: KADENA_CHAIN_ID, gasLimit: 50_000 })
             .createTransaction();
 
-          const { dirtyRead } = createClient(PACT_URL);
+          const { dirtyRead } = createClient(getPactUrl(KADENA_CHAIN_ID));
           const response = await dirtyRead(transaction);
           
           return response?.result?.status === "success" ? response.result.data === true : false;
@@ -267,7 +267,7 @@ export async function getLPTypeInfo(swpair: string): Promise<LPTypeInfo> {
             .setMeta({ chainId: KADENA_CHAIN_ID, gasLimit: 50_000 })
             .createTransaction();
 
-          const { dirtyRead } = createClient(PACT_URL);
+          const { dirtyRead } = createClient(getPactUrl(KADENA_CHAIN_ID));
           const response = await dirtyRead(transaction);
           
           return response?.result?.status === "success" ? response.result.data === true : false;
@@ -332,7 +332,7 @@ export async function executeAddLiquiditySingle(
         .createTransaction();
     };
 
-    const { dirtyRead, submit } = createClient(PACT_URL);
+    const { dirtyRead, submit } = createClient(getPactUrl(KADENA_CHAIN_ID));
     
     // Simulate to estimate gas
     const simTransaction = buildTransaction(defaultGasLimit);
@@ -408,7 +408,7 @@ export async function executeAddLiquidityMultiStep1(
         .createTransaction();
     };
 
-    const { dirtyRead, submit } = createClient(PACT_URL);
+    const { dirtyRead, submit } = createClient(getPactUrl(KADENA_CHAIN_ID));
     
     // First do a simulation to check gas
     let transaction = buildTransaction();
@@ -438,7 +438,7 @@ export async function executeAddLiquidityMultiStep1(
     const result = await submit(signedTransaction);
     
     // Wait for transaction to complete and extract pactId
-    const { listen } = createClient(PACT_URL);
+    const { listen } = createClient(getPactUrl(KADENA_CHAIN_ID));
     const transactionResult = await listen(result);
     
     
@@ -490,7 +490,7 @@ export async function executeAddLiquidityMultiStep2(
         .createTransaction();
     };
 
-    const { submit } = createClient(PACT_URL);
+    const { submit } = createClient(getPactUrl(KADENA_CHAIN_ID));
     
     // Build transaction with fixed gas limit (no simulation needed)
     const transaction = buildTransaction();
@@ -547,7 +547,7 @@ export async function executeAddLiquidityMultiStep3(
         .createTransaction();
     };
 
-    const { submit } = createClient(PACT_URL);
+    const { submit } = createClient(getPactUrl(KADENA_CHAIN_ID));
     
     // Build transaction with fixed gas limit (no simulation needed)
     const transaction = buildTransaction();
@@ -600,7 +600,7 @@ export async function executeAddLiquidityMultiStepComplete(
     onProgress?.(0);
     
     // Wait for step 1 to be confirmed before continuing
-    const { listen } = createClient(PACT_URL);
+    const { listen } = createClient(getPactUrl(KADENA_CHAIN_ID));
     await listen(step1Result);
     
     // Much longer delay to ensure transaction is fully processed and available for continuation on mainnet
@@ -794,7 +794,7 @@ export async function executeSpecialAddLiquidity(
         .createTransaction();
     };
 
-    const { dirtyRead, submit } = createClient(PACT_URL);
+    const { dirtyRead, submit } = createClient(getPactUrl(KADENA_CHAIN_ID));
     
     // First do a simulation to check gas
     let transaction = buildTransaction();
@@ -849,7 +849,7 @@ export async function getBalancedLiquidity(
     const tx = Pact.builder.execution(pactCode)
       .setMeta({ chainId: KADENA_CHAIN_ID, gasLimit: 150_000 })
       .setNetworkId(KADENA_NETWORK).createTransaction();
-    const { dirtyRead } = createClient(PACT_URL);
+    const { dirtyRead } = createClient(getPactUrl(KADENA_CHAIN_ID));
     const res = await dirtyRead(tx);
     if (!res?.result || res.result.status === "failure") return null;
     const data = res.result.data as any;
@@ -874,7 +874,7 @@ export async function getSortLiquidity(
     const tx = Pact.builder.execution(pactCode)
       .setMeta({ chainId: KADENA_CHAIN_ID, gasLimit: 150_000 })
       .setNetworkId(KADENA_NETWORK).createTransaction();
-    const { dirtyRead } = createClient(PACT_URL);
+    const { dirtyRead } = createClient(getPactUrl(KADENA_CHAIN_ID));
     const res = await dirtyRead(tx);
     if (!res?.result || res.result.status === "failure") return null;
     const data = res.result.data as any;
@@ -898,7 +898,7 @@ export async function getLiquidityData(
     const tx = Pact.builder.execution(pactCode)
       .setMeta({ chainId: KADENA_CHAIN_ID, gasLimit: 150_000 })
       .setNetworkId(KADENA_NETWORK).createTransaction();
-    const { dirtyRead } = createClient(PACT_URL);
+    const { dirtyRead } = createClient(getPactUrl(KADENA_CHAIN_ID));
     const res = await dirtyRead(tx);
     if (!res?.result || res.result.status === "failure") return null;
     return res.result.data;
@@ -924,7 +924,7 @@ export async function validateLiquidity(
     const tx = Pact.builder.execution(pactCode)
       .setMeta({ chainId: KADENA_CHAIN_ID, gasLimit: 200_000 })
       .setNetworkId(KADENA_NETWORK).createTransaction();
-    const { dirtyRead } = createClient(PACT_URL);
+    const { dirtyRead } = createClient(getPactUrl(KADENA_CHAIN_ID));
     const res = await dirtyRead(tx);
     if (!res?.result || res.result.status === "failure") return { valid: false };
     const data = res.result.data as any;
@@ -984,7 +984,7 @@ export async function executeFuel(
         .createTransaction();
     };
 
-    const { dirtyRead, submit } = createClient(PACT_URL);
+    const { dirtyRead, submit } = createClient(getPactUrl(KADENA_CHAIN_ID));
     
     const simTransaction = buildTransaction(defaultGasLimit);
     const simulation = await dirtyRead(simTransaction);
@@ -1056,7 +1056,7 @@ export async function executeRemoveLiquidity(
         .createTransaction();
     };
 
-    const { dirtyRead, submit } = createClient(PACT_URL);
+    const { dirtyRead, submit } = createClient(getPactUrl(KADENA_CHAIN_ID));
     
     const simTransaction = buildTransaction(defaultGasLimit);
     const simulation = await dirtyRead(simTransaction);

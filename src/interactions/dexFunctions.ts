@@ -2,7 +2,7 @@ import {
   KADENA_CHAIN_ID,
   KADENA_NAMESPACE, GAS_STATION,
   KADENA_NETWORK,
-  PACT_URL,
+  getPactUrl,
 } from "../constants";
 import { Pact, createClient } from "@kadena/client";
 import { universalSignTransaction, fromKeypair } from "../signing";
@@ -872,7 +872,7 @@ export async function executeSingleSwapWithSlippage(
         .createTransaction();
     };
 
-    const { dirtyRead, submit } = createClient(PACT_URL);
+    const { dirtyRead, submit } = createClient(getPactUrl(KADENA_CHAIN_ID));
     
     // First do a simulation to check gas
     let transaction = buildTransaction();
@@ -963,7 +963,7 @@ export async function executeSingleSwapNoSlippage(
         .createTransaction();
     };
 
-    const { dirtyRead, submit } = createClient(PACT_URL);
+    const { dirtyRead, submit } = createClient(getPactUrl(KADENA_CHAIN_ID));
     
     // First do a simulation to check gas
     let transaction = buildTransaction();
@@ -1062,7 +1062,7 @@ export async function executeMultiSwapWithSlippage(
         .createTransaction();
     };
 
-    const { dirtyRead, submit } = createClient(PACT_URL);
+    const { dirtyRead, submit } = createClient(getPactUrl(KADENA_CHAIN_ID));
     
     // First do a simulation to check gas
     let transaction = buildTransaction();
@@ -1276,7 +1276,7 @@ export async function executeSmartSwapWithSlippage(
         .addSigner(params.guardKeypair.publicKey)
         .createTransaction();
 
-    const { dirtyRead, submit } = createClient(PACT_URL);
+    const { dirtyRead, submit } = createClient(getPactUrl(KADENA_CHAIN_ID));
 
     const simulation = await dirtyRead(buildTx());
     if (simulation.result.status === "failure") {
@@ -1388,7 +1388,7 @@ export async function executeSmartSwapNoSlippage(
         .addSigner(params.guardKeypair.publicKey)
         .createTransaction();
 
-    const { dirtyRead, submit } = createClient(PACT_URL);
+    const { dirtyRead, submit } = createClient(getPactUrl(KADENA_CHAIN_ID));
 
     const simulation = await dirtyRead(buildTx());
     if (simulation.result.status === "failure") {
@@ -1460,7 +1460,7 @@ export async function executeMultiSwapNoSlippage(
         .createTransaction();
     };
 
-    const { dirtyRead, submit } = createClient(PACT_URL);
+    const { dirtyRead, submit } = createClient(getPactUrl(KADENA_CHAIN_ID));
     
     // First do a simulation to check gas
     let transaction = buildTransaction();

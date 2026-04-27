@@ -2,7 +2,7 @@ import {
   KADENA_CHAIN_ID,
   KADENA_NAMESPACE, GAS_STATION,
   KADENA_NETWORK,
-  PACT_URL,
+  getPactUrl,
 } from "../constants";
 import { formatDecimalForPact } from "../pact";
 // Use same interfaces as ouroFunctions.ts
@@ -209,7 +209,7 @@ export async function coilTokensGeneric(
       .createTransaction();
   };
 
-  const { dirtyRead, submit } = createClient(PACT_URL);
+  const { dirtyRead, submit } = createClient(getPactUrl(KADENA_CHAIN_ID));
  
   // First do a simulation to check gas
   let transaction = buildTransaction();
